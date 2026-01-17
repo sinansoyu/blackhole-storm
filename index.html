@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Blackhole Storm: Ultimate Edition</title>
+    <style>
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+        body { margin: 0; padding: 0; overflow: hidden; background-color: #05050a; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; height: 100vh; touch-action: none; user-select: none; }
+        #game-intro-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, #0f0f1a 0%, #05050a 100%); z-index: 10000; display: flex; align-items: center; justify-content: center; }
+        .intro-card { width: 92%; max-width: 480px; background: rgba(15, 15, 25, 0.98); border: 2px solid #eccc68; border-radius: 40px; padding: 35px; text-align: center; color: white; box-shadow: 0 0 100px rgba(0,0,0,0.9); }
+        .intro-ball-preview { width: 42px; height: 42px; border-radius: 50%; border: 2px solid #fff; flex-shrink: 0; }
+        .intro-item { background: rgba(255,255,255,0.03); padding: 12px; border-radius: 20px; display: flex; align-items: center; gap: 15px; border: 1px solid rgba(255,255,255,0.05); text-align: left; margin-bottom: 12px; }
+        @keyframes pulse-blue { 0%, 100% { box-shadow: 0 0 5px #3498db; } 50% { box-shadow: 0 0 20px #3498db; } }
+        @keyframes expand-ring { 0% { transform: scale(0.5); opacity: 1; } 100% { transform: scale(1.3); opacity: 0; } }
+        @keyframes danger-shake { 0% { transform: translateX(-2px); } 100% { transform: translateX(2px); } }
+       
+        #top-header { width: 100%; height: 190px; background: #0f0f1a; border-bottom: 3px solid #eccc68; display: flex; padding: 15px; justify-content: space-around; align-items: center; position: relative; z-index: 1000; }
+        .stat-box { text-align: center; flex: 1; border-right: 3px solid rgba(236, 204, 104, 0.35); cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; }
+        .stat-box:last-child { border-right: none; }
+       
+        .stat-label { font-size: 13px; color: #eccc68; text-transform: uppercase; font-weight: bold; margin-bottom: 3px; }
+        .stat-value { font-size: 19px; font-weight: 900; color: #fff; font-family: 'monospace'; }
+       
+        #pauseBtn { width: 55px; height: 55px; border-radius: 12px; background: rgba(236, 204, 104, 0.1); border: 2.5px solid #eccc68; color: #eccc68; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-left: 5px; align-self: center; }
+       
+        #progress-bar-bg { position: absolute; bottom: 0; left: 0; width: 100%; height: 8px; background: rgba(0,0,0,0.5); }
+        #progress-bar { width: 0%; height: 100%; background: #2ed573; transition: width 0.3s; box-shadow: 0 0 10px #2ed573; }
+        #game-wrapper { flex: 1; position: relative; width: 100%; background: #05050a; overflow: hidden; cursor: crosshair; }
+        canvas { display: block; width: 100%; height: 100%; }
+        #penalty-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2000; display: none; box-shadow: inset 0 0 25px 10px rgba(255, 71, 87, 0.9); }
+        #minus-one-neon { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 140px; height: 140px; border: 6px solid #ff4757; border-radius: 50%; display: none; align-items: center; justify-content: center; z-index: 2001; color: #ff4757; font-size: 65px; font-weight: 900; background: rgba(0, 0, 0, 0.85); box-shadow: 0 0 30px #ff4757, inset 0 0 20px #ff4757, 0 0 15px #000; text-shadow: 3px 3px 5px #000, 0 0 10px #ff4757; animation: neon-blink 0.4s infinite alternate; }
+        .modal { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; background: rgba(15, 15, 25, 0.98); padding: 30px; border-radius: 25px; border: 2px solid #eccc68; z-index: 3000; color: white; min-width: 330px; box-shadow: 0 0 80px black; }
+        .hidden { display: none !important; }
+        button { padding: 14px 40px; font-size: 18px; background: linear-gradient(45deg, #eccc68, #ffa502); color: #1a1a1a; border: none; border-radius: 50px; font-weight: bold; cursor: pointer; margin-top: 15px; }
+        .btn-secondary { background: #4b4b4b; color: white; margin-left: 10px; }
+        #congrats-text { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0.5); font-size: 45px; font-weight: 900; color: #2ed573; display: none; z-index: 2500; text-shadow: 0 0 25px #2ed573; opacity: 0; transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none; }
+        #extra-life-text { position: absolute; top: 55%; left: 50%; transform: translate(-50%, -50%) scale(0.5); font-size: 32px; font-weight: 900; color: #fff; display: none; z-index: 2501; text-shadow: 0 0 15px #fff, 0 0 25px #2ed573; opacity: 0; transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none; }
+       
+        #combo-display { position: absolute; top: 80px; right: 10px; font-size: 17.5px; font-weight: 900; color: #fff; text-shadow: 0 0 20px #eccc68; z-index: 1500; pointer-events: none; opacity: 0; transition: opacity 0.3s; }
+       
+        #perfect-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); font-size: 60px; font-weight: 900; color: #ffd700; z-index: 2500; text-shadow: 0 0 30px #ffd700; pointer-events: none; }
+        @keyframes perfectPop { 0% { transform: translate(-50%, -50%) scale(0); } 50% { transform: translate(-50%, -50%) scale(1.2); } 100% { transform: translate(-50%, -50%) scale(0); } }
+    </style>
+</head>
+<body>
+
+    <div id="game-intro-overlay">
+        <div class="intro-card">
+            <h1 style="color: #eccc68; margin-bottom: 5px; font-size: 30px; font-weight: 900;">BLACKHOLE STORM</h1>
+            <p style="font-size: 10px; color: #eccc68; letter-spacing: 4px; margin-bottom: 25px; opacity: 0.7;">ULTIMATE EDITION</p>
+            <div style="display: grid; gap: 10px;">
+                <div class="intro-item">
+                    <div class="intro-ball-preview" style="background: radial-gradient(circle at 30% 30%, #fff, #3498db, #000); box-shadow: 0 0 15px #3498db; animation: pulse-blue 2s infinite;"></div>
+                    <div><b style="color: #3498db; font-size: 13px;">Zaman Kayması</b><br><span style="font-size: 11px; color: #aaa;">Mavi toplar zamanı 5 saniye %70 yavaşlatır.</span></div>
+                </div>
+                <div class="intro-item" style="border-color: #00d2d3; background: rgba(0, 210, 211, 0.05);">
+                    <div style="width: 42px; height: 42px; border: 2px solid #00d2d3; border-radius: 50%; position: relative; display: flex; align-items: center; justify-content: center;">
+                        <div style="width: 15px; height: 15px; background: #00d2d3; border-radius: 50%;"></div>
+                        <div style="position: absolute; width: 35px; height: 35px; border: 1px dashed #00d2d3; border-radius: 50%; animation: expand-ring 2s infinite;"></div>
+                    </div>
+                    <div><b style="color: #00d2d3; font-size: 13px;">Ultra Genişlik (20 💎)</b><br><span style="font-size: 11px; color: #aaa;">20 sn boyunca karadeliği 2 kat genişletir.</span></div>
+                </div>
+                <div class="intro-item">
+                    <div class="intro-ball-preview" style="background: #e74c3c; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 15px #e74c3c;">💣</div>
+                    <div><b style="color: #e74c3c; font-size: 13px;">Bomba Topu</b><br><span style="font-size: 11px; color: #aaa;">Ekrandaki tüm topları skora ekleyerek temizler!</span></div>
+                </div>
+                <div class="intro-item" style="border-color: #ff4757; background: rgba(255, 71, 87, 0.05); animation: danger-shake 0.2s infinite alternate;">
+                    <div style="width: 42px; height: 42px; background: #ff4757; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 20px;">!</div>
+                    <div><b style="color: #ff4757; font-size: 13px;">Kritik Daralma</b><br><span style="font-size: 11px; color: #aaa;">15 sn tıklamazsan delik çöker ve patlar!</span></div>
+                </div>
+            </div>
+            <button id="final-start-trigger" style="width: 100%; padding: 20px; border-radius: 50px; border: none; background: linear-gradient(45deg, #eccc68, #ffa502); color: #000; font-size: 22px; font-weight: 900; cursor: pointer; margin-top: 15px; box-shadow: 0 10px 30px rgba(236,204,104,0.4);">SİSTEMİ BAŞLAT</button>
+        </div>
+    </div>
+
+    <div id="top-header">
+        <div class="stat-box" id="diamondContainer" onclick="handleDiamondPowerUp()"><div class="stat-label">💎</div><div class="stat-value" id="diamondVal">50</div></div>
+        <div class="stat-box" id="starContainer"><div class="stat-label">⭐</div><div class="stat-value" id="starVal">250</div></div>
+        <div class="stat-box"><div class="stat-label">TOPLAM</div><div class="stat-value" id="totalScoreVal">0</div></div>
+        <div class="stat-box"><div class="stat-label">LEVEL</div><div class="stat-value" id="levelVal">1</div></div>
+        <div class="stat-box"><div class="stat-label">HEDEF</div><div class="stat-value"><span id="currLvlScoreVal">0</span> / 1000</div></div>
+        <div class="stat-box"><div class="stat-label">CAN</div><div class="stat-value" id="livesVal">3</div></div>
+        <div class="stat-box"><div class="stat-label">SÜRE</div><div class="stat-value" id="timerVal">100</div></div>
+        <div class="stat-box" style="border-right: none;"><button id="pauseBtn">⏸</button></div>
+        <div id="progress-bar-bg"><div id="progress-bar"></div></div>
+    </div>
+
+    <div id="game-wrapper">
+        <div id="penalty-overlay"></div>
+        <div id="minus-one-neon">-1</div>
+        <div id="congrats-text">TEBRİKLER!</div>
+        <div id="extra-life-text">+1 CAN</div>
+        <div id="combo-display"></div>
+        <div id="perfect-text">PERFECT!</div>
+        <div id="continue-modal" class="modal hidden"><h2>OYUN BİTTİ</h2><p>Devam etmek ister misin?</p><p style="color:#eccc68">100 ⭐ KULLAN</p><button id="continueYesBtn">EVET</button><button id="continueNoBtn" class="btn-secondary">HAYIR</button></div>
+        <div id="no-star-modal" class="modal hidden"><h2>ÜZGÜNÜM</h2><p>Yeterli ⭐ yok!</p><button id="noStarOkBtn">TAMAM</button></div>
+        <div id="intro-modal" class="modal hidden"><h1 id="intro-title"></h1><div style="margin: 15px auto; width: 100px; height: 100px;"><canvas id="previewCanvas" width="100" height="100"></canvas></div><p id="intro-desc"></p><button id="introCloseBtn">ANLADIM</button></div>
+        <div id="levelup-modal" class="modal hidden"><h2>MÜKEMMEL!</h2><button id="nextLvlBtn">SONRAKİ SEVİYE</button></div>
+        <div id="gameover-modal" class="modal hidden"><h1>OYUN BİTTİ</h1><p>Toplam Skor: <span id="finalScore">0</span></p><p>Ulaşılan Level: <span id="finalLevel">0</span></p><button id="restartBtn">TEKRAR DENE</button></div>
+        <canvas id="gameCanvas"></canvas>
+    </div>
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const pCanvas = document.getElementById('previewCanvas');
+    const pCtx = pCanvas.getContext('2d');
+
+    const ui = {
+        total: document.getElementById('totalScoreVal'), level: document.getElementById('levelVal'),
+        lives: document.getElementById('livesVal'), timer: document.getElementById('timerVal'),
+        star: document.getElementById('starVal'), starContainer: document.getElementById('starContainer'),
+        diamond: document.getElementById('diamondVal'), diamondContainer: document.getElementById('diamondContainer'),
+        progress: document.getElementById('progress-bar'), penalty: document.getElementById('penalty-overlay'),
+        minusNeon: document.getElementById('minus-one-neon'), congrats: document.getElementById('congrats-text'),
+        extraLife: document.getElementById('extra-life-text'), pauseBtn: document.getElementById('pauseBtn'),
+        lvlProgress: document.getElementById('currLvlScoreVal'), combo: document.getElementById('combo-display'),
+        perfect: document.getElementById('perfect-text'),
+        modals: {
+            lvl: document.getElementById('levelup-modal'),
+            over: document.getElementById('gameover-modal'), intro: document.getElementById('intro-modal'),
+            continue: document.getElementById('continue-modal'), noStar: document.getElementById('no-star-modal')
+        }
+    };
+
+    let width, height, centerX, centerY, lastTime = performance.now();
+    let totalScore = 0, currentLevelScore = 0, level = 1, lives = 3, timeLeft = 100, comboCount = 0, stars = 250, diamonds = 50;
+    let levelStartScore = 0, balls = [], gaps = [], blocks = [], floatingTexts = [], confetti = [], particles = [], starCollectibles = [], diamondCollectibles = [];
+    let vortexAngle = 0, holeHitTimer = 0, isInputLocked = false, gameState = 'menu';
+    let explodeRadius = 0, explodeAlpha = 0, slowMotionTimer = 0, screenShake = 0;
+    let comboMultiplier = 1, activePowerUps = [], bombCountInLevel = 0;
+   
+    let backgroundStars = [];
+   
+    const BASE_CENTER_R = 40;
+// === STROKE HALKA AYARLARI ===
+const STROKE_RING_WIDTH = 6;     // px cinsinden gerçek çizgi kalınlığı
+const STROKE_RING_COLOR = '#ffffff';
+const STROKE_RING_ALPHA = 0.85;
+
+    let currentCenterR = 40, targetCenterR = 40, lastClickTime = performance.now(), diamondPowerUpTimer = 0;
+    const SHRINK_START_TIME = 15000, SHRINK_DURATION = 20000, MIN_CRITICAL_R = 12;
+
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+   
+function drawStrokeRing() {
+    ctx.save();
+    ctx.globalAlpha = STROKE_RING_ALPHA;
+    ctx.strokeStyle = STROKE_RING_COLOR;
+    ctx.lineWidth = STROKE_RING_WIDTH;
+    ctx.shadowBlur = 15;
+    ctx.shadowColor = STROKE_RING_COLOR;
+
+    ctx.beginPath();
+    ctx.arc(
+        centerX,
+        centerY,
+        currentCenterR,
+        0,
+        Math.PI * 2
+    );
+    ctx.stroke();
+    ctx.restore();
+}
+
+    function playSound(freq, duration, type = 'sine') {
+        const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.frequency.value = freq; osc.type = type;
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+        osc.start(); osc.stop(audioCtx.currentTime + duration);
+    }
+
+    class Collectible {
+        constructor(x, y, container, color, isDiamond = false) {
+            this.x = x; this.y = y; this.vx = (Math.random() - 0.5) * 5; this.vy = (Math.random() - 0.5) * 5;
+            this.phase = 'explode'; this.timer = 0; this.container = container; this.color = color; this.isDiamond = isDiamond;
+        }
+        update() {
+            if (this.phase === 'explode') {
+                this.x += this.vx; this.y += this.vy; this.vx *= 0.95; this.vy *= 0.95; this.timer++;
+                if (this.timer > 60) {
+                    this.phase = 'collect';
+                    const rect = this.container.getBoundingClientRect();
+                    this.targetX = rect.left + rect.width / 2;
+                    this.targetY = rect.top - 190 + rect.height / 2;
+                }
+            } else {
+                let dx = this.targetX - this.x; let dy = this.targetY - this.y; let dist = Math.hypot(dx, dy);
+                if (dist < 10) return false; this.x += dx * 0.12; this.y += dy * 0.12;
+            }
+            return true;
+        }
+        draw() {
+            ctx.save(); ctx.fillStyle = this.color; ctx.shadowBlur = 10; ctx.shadowColor = this.color;
+            if (this.isDiamond) { ctx.beginPath(); ctx.moveTo(this.x, this.y - 10); ctx.lineTo(this.x + 7, this.y); ctx.lineTo(this.x, this.y + 10); ctx.lineTo(this.x - 7, this.y); ctx.closePath(); ctx.fill(); }
+            else { ctx.beginPath(); for(let i=0; i<5; i++) { ctx.lineTo(this.x + 8 * Math.cos((18 + i*72) * Math.PI/180), this.y - 8 * Math.sin((18 + i*72) * Math.PI/180)); ctx.lineTo(this.x + 3 * Math.cos((54 + i*72) * Math.PI/180), this.y - 3 * Math.sin((54 + i*72) * Math.PI/180)); } ctx.closePath(); ctx.fill(); }
+            ctx.restore();
+        }
+    }
+
+    function resize() {
+        width = window.innerWidth;
+        height = window.innerHeight - 190;
+        canvas.width = width;
+        canvas.height = height;
+        centerX = width / 2;
+        centerY = height / 2;
+       
+        backgroundStars = [];
+        for(let i=0; i<150; i++) {
+            backgroundStars.push({
+                x: Math.random() * width,
+                y: Math.random() * height,
+                size: Math.random() * 2,
+                speed: Math.random() * 0.004 + 0.001
+            });
+        }
+    }
+    window.addEventListener('resize', resize); resize();
+    function hideAllModals() { Object.values(ui.modals).forEach(m => m.classList.add('hidden')); }
+
+    function absoluteReset(full = false) {
+        if(full) { totalScore = 0; level = 1; lives = 3; levelStartScore = 0; } else { totalScore = levelStartScore; lives = 3; }
+        currentLevelScore = 0; timeLeft = 100; comboCount = 0; comboMultiplier = 1; currentCenterR = BASE_CENTER_R; targetCenterR = BASE_CENTER_R; lastClickTime = performance.now(); diamondPowerUpTimer = 0;
+        bombCountInLevel = 0; balls = []; gaps = []; blocks = []; floatingTexts = []; confetti = []; particles = []; activePowerUps = []; starCollectibles = []; diamondCollectibles = [];
+        explodeRadius = 0; explodeAlpha = 0; isInputLocked = false; slowMotionTimer = 0; screenShake = 0;
+        hideAllModals(); ui.pauseBtn.innerText = '⏸'; ui.combo.style.opacity = '0'; updateUI();
+        if(full) levelCheck(); else initLevel();
+    }
+
+    function handleDiamondPowerUp() {
+        if (gameState !== 'playing' || diamonds < 20 || diamondPowerUpTimer > 0) return;
+        diamonds -= 20; updateUI(); playSound(400, 0.5, 'square');
+        floatingTexts.push(new FloatText("ULTRA GENİŞLİK!", centerX, centerY, "#00d2d3"));
+        diamondPowerUpTimer = 20; targetCenterR = BASE_CENTER_R * 2; lastClickTime = performance.now();
+    }
+
+    document.getElementById('final-start-trigger').onclick = function() { document.getElementById('game-intro-overlay').style.display = 'none'; audioCtx.resume(); absoluteReset(true); };
+    document.getElementById('nextLvlBtn').onclick = (e) => { e.stopPropagation(); level++; levelCheck(); };
+    document.getElementById('introCloseBtn').onclick = (e) => { e.stopPropagation(); hideAllModals(); initLevel(); };
+    document.getElementById('restartBtn').onclick = () => absoluteReset(false);
+   
+    document.getElementById('continueYesBtn').onclick = () => {
+        if(stars >= 100) { stars -= 100; lives = 3; currentCenterR = BASE_CENTER_R; targetCenterR = BASE_CENTER_R; lastClickTime = performance.now(); timeLeft = 100; hideAllModals(); updateUI(); gameState = 'playing'; lastTime = performance.now(); }
+        else { hideAllModals(); ui.modals.noStar.classList.remove('hidden'); }
+    };
+    document.getElementById('continueNoBtn').onclick = () => { hideAllModals(); document.getElementById('finalScore').innerText = levelStartScore; document.getElementById('finalLevel').innerText = level; ui.modals.over.classList.remove('hidden'); };
+    document.getElementById('noStarOkBtn').onclick = () => { hideAllModals(); document.getElementById('finalScore').innerText = levelStartScore; document.getElementById('finalLevel').innerText = level; ui.modals.over.classList.remove('hidden'); };
+    ui.pauseBtn.onclick = (e) => { e.stopPropagation(); if(gameState === 'playing') { gameState = 'paused'; ui.pauseBtn.innerText = '▶'; } else if(gameState === 'paused') { gameState = 'playing'; ui.pauseBtn.innerText = '⏸'; lastTime = performance.now(); } };
+
+    function levelCheck() {
+        hideAllModals(); bombCountInLevel = 0;
+        const specials = [3, 5, 7, 10, 12, 15, 18, 20];
+        if (specials.includes(level)) {
+            const title = document.getElementById('intro-title'); const desc = document.getElementById('intro-desc');
+            if(level===3){ title.innerText="YAVAŞLATMA TOPU"; desc.innerText="Mavi top! Tüm topları 5 saniye yavaşlatır!"; drawSpecialPreview('slow'); }
+            else if(level===5){ title.innerText="HAYALET TOP"; desc.innerText="Sinsi hayalet! Puan: Merkeze yakınlığa göre 1 - 50"; drawSpecialPreview('ghost'); }
+            else if(level===7){ title.innerText="BOMBA TOPU"; desc.innerText="Kırmızı bomba! Ekrandaki tüm topları temizler!"; drawSpecialPreview('bomb'); }
+            else if(level===10){ title.innerText="MASTER BALL"; desc.innerText="Hızlı Altın! Yakala ve Seviye Atla!"; drawSpecialPreview('master'); }
+            else if(level===12){ title.innerText="MIKNATIS TOPU"; desc.innerText="Mor mıknatıs! 3 sn topları merkeze çeker!"; drawSpecialPreview('magnet'); }
+            else if(level===15){ title.innerText="ZIRHLI TOP"; desc.innerText="2 vuruşta yakalanır!"; drawSpecialPreview('armor'); }
+            else if(level===18){ title.innerText="ÇOĞALTICI TOP"; desc.innerText="Yeşil yıldız! Sonraki 3 yakalama 2x puan!"; drawSpecialPreview('multiplier'); }
+            else if(level===20){ title.innerText="BOSS SEVİYE"; desc.innerText="Dev Top! 5 kez vurulmalı, çok puan!"; drawSpecialPreview('boss'); }
+            ui.modals.intro.classList.remove('hidden'); gameState = 'menu';
+        } else initLevel();
+    }
+
+    function initLevel() {
+        levelStartScore = totalScore; currentLevelScore = 0; timeLeft = 100; comboCount = 0; comboMultiplier = 1; currentCenterR = BASE_CENTER_R; targetCenterR = BASE_CENTER_R; lastClickTime = performance.now();
+        bombCountInLevel = 0; balls = []; gaps = []; blocks = []; floatingTexts = []; particles = []; activePowerUps = [];
+        updateUI(); gameState = 'playing'; lastTime = performance.now();
+        if(level % 20 === 0) balls.push(new Ball(false, 'boss'));
+    }
+
+    function drawSpecialPreview(type) {
+        pCtx.clearRect(0,0,100,100); let pb = { x: 50, y: 50, r: 24, vx: 1, vy: 0 };
+        if(type === 'ghost') { pb.isGhost = true; pb.color = '#a29bfe'; pb.r = 28; }
+        else if(type === 'master') { pb.color = '#ffd700'; pb.isMaster = true; }
+        else if(type === 'armor') { pb.armor = 1; pb.color = '#ecf0f1'; }
+        else if(type === 'slow') { pb.powerUpType = 'slow'; pb.color = '#3498db'; }
+        else if(type === 'bomb') { pb.powerUpType = 'bomb'; pb.color = '#e74c3c'; }
+        else if(type === 'magnet') { pb.powerUpType = 'magnet'; pb.color = '#9b59b6'; }
+        else if(type === 'multiplier') { pb.powerUpType = 'multiplier'; pb.color = '#2ecc71'; }
+        else if(type === 'boss') { pb.isBoss = true; pb.bossHits = 5; pb.r = 35; pb.color = '#ff6348'; }
+        drawBallInternal(pCtx, pb, true);
+
+    }
+
+    function drawBallInternal(targetCtx, b, isPreview = false) {
+        targetCtx.save(); targetCtx.translate(b.x, b.y);
+        if(!isPreview && b.vx) targetCtx.rotate(Math.atan2(b.vy, b.vx));
+        if(!isPreview) targetCtx.scale(b.sX || 1, b.sY || 1);
+        if(b.isGhost) {
+            let alpha = isPreview ? 1 : Math.pow(Math.sin(Date.now() * 0.003), 4);
+            targetCtx.globalAlpha = Math.max(0.1, alpha);
+            targetCtx.beginPath(); let pts = 16;
+            for(let i=0; i <= pts * 2; i++) { let ang = (i * Math.PI) / pts; let radius = b.r + (i % 2 === 0 ? 3 : -3); targetCtx.lineTo(radius * Math.cos(ang), radius * Math.sin(ang)); }
+            targetCtx.strokeStyle = "#a29bfe"; targetCtx.lineWidth = 2; targetCtx.stroke();
+        }
+        if(b.armorBroken) { targetCtx.fillStyle = '#000'; targetCtx.beginPath(); targetCtx.arc(0, 0, b.r, 0, Math.PI*2); targetCtx.fill(); targetCtx.strokeStyle = "#eccc68"; targetCtx.lineWidth = 4; targetCtx.stroke(); }
+        else if(b.isBoss) { let grad = targetCtx.createRadialGradient(0, 0, 0, 0, 0, b.r); grad.addColorStop(0, '#ff6348'); grad.addColorStop(0.5, '#ff4757'); grad.addColorStop(1, '#000'); targetCtx.fillStyle = grad; targetCtx.beginPath(); targetCtx.arc(0, 0, b.r, 0, Math.PI*2); targetCtx.fill(); targetCtx.strokeStyle = "#fff"; targetCtx.lineWidth = 4; targetCtx.stroke(); targetCtx.fillStyle = "#fff"; targetCtx.font = "bold 20px monospace"; targetCtx.textAlign = "center"; targetCtx.textBaseline = "middle"; targetCtx.fillText(b.bossHits || 5, 0, 0); }
+        else if(b.powerUpType) { let colors = { slow: '#3498db', bomb: '#e74c3c', magnet: '#9b59b6', multiplier: '#2ecc71' }; let symbols = { slow: '', bomb: '💣', magnet: '🧲', multiplier: '⭐' }; targetCtx.fillStyle = colors[b.powerUpType] || '#fff'; targetCtx.beginPath(); targetCtx.arc(0, 0, b.r, 0, Math.PI*2); targetCtx.fill(); targetCtx.strokeStyle = "#fff"; targetCtx.lineWidth = 3; targetCtx.stroke(); targetCtx.font = "16px monospace"; targetCtx.textAlign = "center"; targetCtx.textBaseline = "middle"; targetCtx.fillText(symbols[b.powerUpType] || '', 0, 0); }
+        else { let grad = targetCtx.createRadialGradient(-b.r*0.3, -b.r*0.3, b.r*0.1, 0, 0, b.r); grad.addColorStop(0, '#fff'); grad.addColorStop(0.3, b.color); grad.addColorStop(1, '#000'); targetCtx.beginPath(); targetCtx.fillStyle = grad; targetCtx.arc(0, 0, b.r, 0, Math.PI*2); targetCtx.fill(); if(b.armor) { targetCtx.strokeStyle="#fff"; targetCtx.lineWidth=3; targetCtx.stroke(); } }
+        targetCtx.restore();
+    }
+
+    class Ball {
+        constructor(isMaster = false, forceType = null) {
+            this.isMaster = isMaster;
+            if(forceType === 'boss') { this.isBoss = true; this.bossHits = 5; this.r = 35; this.color = '#ff6348'; this.x = centerX; this.y = centerY - 100; this.vx = 0; this.vy = 0.5; }
+            else if(!isMaster && level >= 3 && Math.random() < 0.12) {
+                let types = []; if(level >= 3) types.push('slow'); if(level >= 7 && bombCountInLevel < 3) types.push('bomb'); if(level >= 12) types.push('magnet'); if(level >= 18) types.push('multiplier');
+                this.powerUpType = types[Math.floor(Math.random() * types.length)]; this.r = 14; if(this.powerUpType === 'bomb') bombCountInLevel++;
+                let colors = { slow: '#3498db', bomb: '#e74c3c', magnet: '#9b59b6', multiplier: '#2ecc71' }; this.color = colors[this.powerUpType];
+            } else {
+                this.isGhost = (!isMaster && level >= 5 && Math.random() < 0.12); this.r = this.isGhost ? 14 : (isMaster ? 7 : 12);
+                this.armor = (!isMaster && level >= 15 && Math.random() < 0.3) ? 1 : 0; this.armorBroken = false;
+                this.color = isMaster ? '#ffd700' : (this.isGhost ? '#a29bfe' : `hsl(${Math.random()*360}, 75%, 60%)`);
+            }
+            this.isSucked = false;
+            if(!this.isBoss) {
+                let side = Math.floor(Math.random() * 4);
+                if(side===0){this.x=Math.random()*width; this.y=-50;} else if(side===1){this.x=width+50; this.y=Math.random()*height;} else if(side===2){this.x=Math.random()*width; this.y=height+50;} else {this.x=-50; this.y=Math.random()*height;}
+                let targetX = Math.random() * width; let targetY = Math.random() * height; let ang = Math.atan2(targetY - this.y, targetX - this.x);
+                let baseSpeed = 1.3; let speedMultiplier = Math.min(1 + (level * 0.15), 3);
+                let slowFactor = activePowerUps.includes('slow') ? 0.3 : 1; let speedMod = this.powerUpType === 'bomb' ? 1.15 : (this.isGhost ? 1.1 : 1.0);
+                let spd = isMaster ? 18 : (baseSpeed * speedMultiplier * speedMod); spd *= slowFactor;
+                this.vx = Math.cos(ang) * spd; this.vy = Math.sin(ang) * spd;
+            }
+            this.sX = 1; this.sY = 1;
+        }
+        update(dt) {
+            if(gameState !== 'playing' && gameState !== 'penalty_blink') return true;
+            if(activePowerUps.includes('magnet') && !this.isSucked) { let dx = centerX - this.x; let dy = centerY - this.y; let dist = Math.hypot(dx, dy); if(dist > currentCenterR + this.r) { this.vx += (dx / dist) * 0.5; this.vy += (dy / dist) * 0.5; } }
+            if(this.isSucked) { this.x += (centerX - this.x) * 0.25; this.y += (centerY - this.y) * 0.25; this.r *= 0.85; return this.r > 0.5; }
+            this.x += this.vx; this.y += this.vy; this.sX += (1 - this.sX) * 0.15; this.sY += (1 - this.sY) * 0.15;
+            for(let b of blocks) { if(this.x+this.r > b.x && this.x-this.r < b.x+b.w && this.y+this.r > b.y && this.y-this.r < b.y+b.h) { b.hit = true; if(b.w > b.h) this.vy *= -1; else this.vx *= -1; } }
+            for(let g of gaps) { if(this.x+this.r > g.x && this.x-this.r < g.x+g.w && this.y+this.r > g.y && this.y-this.r < g.y+g.h) return false; }
+            if(this.x < this.r || this.x > width - this.r) { this.vx *= -1; this.sX=0.5; this.sY=1.5; this.x = this.x<this.r?this.r:width-this.r; }
+            if(this.y < this.r || this.y > height - this.r) { this.vy *= -1; this.sX=1.5; this.sY=0.5; this.y = this.y<this.r?this.r:height-this.r; }
+            return true;
+        }
+        draw() { drawBallInternal(ctx, this); }
+    }
+
+    class NeonBlock {
+        constructor() {
+            this.w = Math.random() > 0.5 ? 80 : 12;
+            this.h = this.w === 12 ? 80 : 12;
+            let ok = false;
+            let att = 0;
+           
+            // Dinamik Güvenli Bölge: Kara deliğin o anki boyutunun 3 katı mesafe bırak
+            let safeZone = currentCenterR * 3;
+
+            while(!ok && att < 30) {
+                this.x = Math.random() * (width - 160) + 80;
+                this.y = Math.random() * (height - 160) + 80;
+               
+                let distToCenter = Math.hypot(this.x + this.w/2 - centerX, this.y + this.h/2 - centerY);
+               
+                if(distToCenter > safeZone) {
+                    ok = true;
+                    for(let b of blocks) {
+                        if(this.x < b.x + b.w + 25 && this.x + this.w > b.x - 25 &&
+                           this.y < b.y + b.h + 25 && this.y + this.h > b.y - 25) {
+                            ok = false;
+                            break;
+                        }
+                    }
+                }
+                att++;
+            }
+            this.hit = false;
+            this.life = 2.0;
+        }
+        draw() {
+            ctx.save();
+            ctx.fillStyle = this.hit ? '#ff4757' : '#00d2d3';
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = this.hit ? '#ff4757' : '#00d2d3';
+            ctx.globalAlpha = Math.min(1, this.life * 2);
+            ctx.fillRect(this.x, this.y, this.w, this.h);
+            ctx.restore();
+            this.hit = false;
+        }
+    }
+    class Gap { constructor() { this.side = Math.floor(Math.random()*4); this.life = 6.0; if(this.side===0){this.x=Math.random()*(width-110); this.y=0; this.w=110; this.h=6;} else if(this.side===1){this.x=width-6; this.y=Math.random()*(height-110); this.w=6; this.h=110;} else if(this.side===2){this.x=Math.random()*(width-110); this.y=height-6; this.w=110; this.h=6;} else {this.x=0; this.y=Math.random()*(height-110); this.w=6; this.h=110;} } draw() { ctx.save(); ctx.fillStyle = '#ff4757'; ctx.fillRect(this.x, this.y, this.w, this.h); ctx.restore(); } }
+    class FloatText { constructor(txt, x, y, color = "#fff") { this.txt = txt; this.x = x; this.y = y; this.life = 1.0; this.color = color; } update(dt) { this.y -= 50 * dt; this.life -= dt; return this.life > 0; } draw() { ctx.save(); ctx.globalAlpha = this.life; ctx.font = "bold 24px monospace"; ctx.fillStyle = this.color; ctx.textAlign = "center"; ctx.fillText(this.txt, this.x, this.y); ctx.restore(); } }
+    class Confetti { constructor() { this.x = centerX; this.y = centerY; this.size = Math.random() * 8 + 4; this.color = `hsl(${Math.random() * 360}, 100%, 50%)`; let ang = Math.random() * Math.PI * 2; let spd = Math.random() * 10 + 5; this.vx = Math.cos(ang) * spd; this.vy = Math.sin(ang) * spd; this.gravity = 0.15; this.life = 1.0; } update() { this.vy += this.gravity; this.x += this.vx; this.y += this.vy; this.life -= 0.01; return this.life > 0; } draw() { ctx.save(); ctx.globalAlpha = this.life; ctx.fillStyle = this.color; ctx.fillRect(this.x, this.y, this.size, this.size); ctx.restore(); } }
+    class Particle { constructor(x, y, color) { this.x = x; this.y = y; let ang = Math.random() * Math.PI * 2; let spd = Math.random() * 5 + 2; this.vx = Math.cos(ang) * spd; this.vy = Math.sin(ang) * spd; this.life = 1.0; this.size = Math.random() * 4 + 2; this.color = color; } update(dt) { this.x += this.vx; this.y += this.vy; this.vy += 0.1; this.life -= dt * 2; return this.life > 0; } draw() { ctx.save(); ctx.globalAlpha = this.life; ctx.fillStyle = this.color; ctx.fillRect(this.x, this.y, this.size, this.size); ctx.restore(); } }
+
+    function handleShot() {
+        if(gameState !== 'playing' || isInputLocked) return;
+        lastClickTime = performance.now(); if(diamondPowerUpTimer <= 3) targetCenterR = BASE_CENTER_R;
+        isInputLocked = true; setTimeout(() => isInputLocked = false, 150);
+        let validTargets = [];
+        for(let b of balls) {
+            if(b.isSucked) continue;
+            let dist = Math.hypot(b.x-centerX, b.y-centerY);
+            if(dist < currentCenterR + b.r + 4) validTargets.push({ball: b, dist: dist});
+        }
+        if(validTargets.length > 0) {
+            validTargets.sort((a, b) => a.dist - b.dist); let captured = validTargets[0].ball; let minDistance = validTargets[0].dist;
+            if(captured.powerUpType) { activatePowerUp(captured.powerUpType); captured.isSucked = true; playSound(800, 0.2, 'square'); for(let i=0; i<15; i++) particles.push(new Particle(captured.x, captured.y, captured.color)); return; }
+            if(captured.isBoss) { captured.bossHits--; screenShake = 10; playSound(100, 0.3, 'sawtooth'); for(let i=0; i<20; i++) particles.push(new Particle(captured.x, captured.y, '#ff4757')); if(captured.bossHits <= 0) { captured.isSucked = true; holeHitTimer = 1.0; comboCount++; let pts = 5000; totalScore += pts; currentLevelScore += pts; floatingTexts.push(new FloatText("+"+pts, captured.x, captured.y, '#ffd700')); updateUI(); if(currentLevelScore >= 1000) triggerLevelSuccess(); } return; }
+            if(captured.armor > 0) { captured.armor--; captured.armorBroken = true; playSound(400, 0.15); screenShake = 5; }
+            else {
+                captured.isSucked = true; holeHitTimer = 1.0; comboCount++; updateComboDisplay(); let pts = 0;
+                if(captured.isMaster) { pts = 1000; currentLevelScore = 1000; lives++; playSound(1000, 0.3, 'triangle'); }
+                else {
+                    let ratio = 1 - (minDistance / (currentCenterR + captured.r + 4));
+                    if(ratio > 0.86) { showPerfect(); slowMotionTimer = 0.2; screenShake = 8; playSound(1200, 0.2); ratio = 1.2; }
+                    else { playSound(600 + (comboCount * 50), 0.15); }
+                    let maxPuan = captured.isGhost ? 50 : 20; pts = Math.round(ratio * (maxPuan - 1) + 1);
+                    let comboBonus = 1 + (Math.floor(comboCount/3) * 0.2); pts = Math.floor(pts * comboBonus * comboMultiplier);
+                    pts = Math.max(1, pts); currentLevelScore += pts;
+                }
+                totalScore += pts; let color = captured.isMaster ? '#ffd700' : (pts >= 18 ? '#2ecc71' : '#fff'); floatingTexts.push(new FloatText("+"+pts, captured.x, captured.y, color)); for(let i=0; i<10; i++) particles.push(new Particle(captured.x, captured.y, captured.color)); updateUI(); if(currentLevelScore >= 1000) triggerLevelSuccess();
+            }
+        } else triggerPenalty();
+    }
+
+    function triggerBigBang() { screenShake = 50; playSound(50, 1.0, 'sawtooth'); gameState = 'penalty_freeze'; for(let i=0; i<100; i++) particles.push(new Particle(centerX, centerY, `hsl(${Math.random()*360}, 100%, 50%)`)); floatingTexts.push(new FloatText("BIG BANG!", centerX, centerY, "#ff4757")); setTimeout(() => { triggerPenalty(); targetCenterR = BASE_CENTER_R; currentCenterR = BASE_CENTER_R; lastClickTime = performance.now(); }, 1000); }
+    function triggerTimeOut() { screenShake = 20; playSound(100, 0.5, 'sawtooth'); gameState = 'penalty_freeze'; floatingTexts.push(new FloatText("SÜRE DOLDU!", centerX, centerY, "#ff4757")); setTimeout(() => { triggerPenalty(); timeLeft = 100; lastClickTime = performance.now(); targetCenterR = BASE_CENTER_R; currentCenterR = BASE_CENTER_R; }, 1000); }
+   
+    async function processBombExplosion() {
+        gameState = 'penalty_freeze'; const targets = balls.filter(b => !b.isSucked && !b.powerUpType);
+        for (const b of targets) { b.isSucked = true; let pts = b.isGhost ? 50 : 20; totalScore += pts; currentLevelScore += pts; floatingTexts.push(new FloatText("+" + pts, b.x, b.y, "#e74c3c")); playSound(400 + (pts * 10), 0.05, 'sine'); updateUI(); await new Promise(r => setTimeout(r, 60)); }
+        setTimeout(() => { if(currentLevelScore >= 1000) triggerLevelSuccess(); else { gameState = 'playing'; lastTime = performance.now(); } }, 500);
+    }
+
+    function activatePowerUp(type) {
+        if(type === 'slow') { activePowerUps.push('slow'); balls.forEach(b => { b.vx *= 0.3; b.vy *= 0.3; }); floatingTexts.push(new FloatText("YAVAŞLATMA!", centerX, centerY - 50, '#3498db')); setTimeout(() => { activePowerUps = activePowerUps.filter(p => p !== 'slow'); balls.forEach(b => { b.vx *= (1/0.3); b.vy *= (1/0.3); }); }, 5000); }
+        else if(type === 'bomb') { floatingTexts.push(new FloatText("BOMBA!", centerX, centerY - 50, '#e74c3c')); screenShake = 25; playSound(50, 0.8, 'sawtooth'); processBombExplosion(); }
+        else if(type === 'magnet') { activePowerUps.push('magnet'); floatingTexts.push(new FloatText("MIKNATIS!", centerX, centerY - 50, '#9b59b6')); setTimeout(() => { activePowerUps = activePowerUps.filter(p => p !== 'magnet'); }, 3000); }
+        else if(type === 'multiplier') { comboMultiplier = 2; floatingTexts.push(new FloatText("2X PUAN!", centerX, centerY - 50, '#2ecc71')); setTimeout(() => { comboMultiplier = 1; }, 5000); }
+    }
+   
+    function updateComboDisplay() { if(comboCount >= 3) { let text = comboCount >= 8 ? 'x'+comboCount+' INSANE!' : (comboCount >= 5 ? 'x'+comboCount+' FIRE!' : 'x'+comboCount+' COMBO!'); ui.combo.innerText = text; ui.combo.style.opacity = '1'; ui.combo.style.color = comboCount >= 8 ? '#ff4757' : (comboCount >= 5 ? '#ffa502' : '#eccc68'); } else ui.combo.style.opacity = '0'; }
+    function showPerfect() { ui.perfect.style.animation = 'none'; setTimeout(() => { ui.perfect.style.animation = 'perfectPop 0.6s ease-out'; }, 10); }
+
+    function triggerPenalty() {
+        gameState = 'penalty_freeze'; lives--; comboCount = 0; comboMultiplier = 1; ui.combo.style.opacity = '0'; updateUI(); playSound(150, 0.5, 'sawtooth'); screenShake = 12;
+        ui.penalty.style.display = 'block'; ui.minusNeon.style.display = 'flex';
+        setTimeout(() => { ui.penalty.style.display = 'none'; ui.minusNeon.style.display = 'none'; if(lives <= 0) { gameState = 'over'; hideAllModals(); ui.modals.continue.classList.remove('hidden'); } else { gameState = 'penalty_blink'; setTimeout(() => { gameState = 'playing'; timeLeft = 100; lastTime = performance.now(); lastClickTime = performance.now(); targetCenterR = BASE_CENTER_R; currentCenterR = BASE_CENTER_R; }, 1000); } }, 2000);
+    }
+
+    function triggerLevelSuccess() {
+        gameState = 'levelup_anim'; explodeRadius = 1; explodeAlpha = 1; let lifeAdded = false; if (lives < 3) { lives++; lifeAdded = true; }
+        for(let i=0; i<5; i++) starCollectibles.push(new Collectible(centerX, centerY, ui.starContainer, '#ffd700', false));
+        playSound(800, 0.5, 'triangle');
+        setTimeout(() => {
+            ui.congrats.style.display = 'block'; setTimeout(() => { ui.congrats.style.opacity = '1'; ui.congrats.style.transform = 'translate(-50%, -50%) scale(1)'; }, 10);
+            if (lifeAdded) { ui.extraLife.style.display = 'block'; setTimeout(() => { ui.extraLife.style.opacity = '1'; ui.extraLife.style.transform = 'translate(-50%, -50%) scale(1)'; }, 300); }
+            for(let i=0; i<60; i++) confetti.push(new Confetti());
+            setTimeout(() => { ui.congrats.style.opacity = '0'; ui.congrats.style.transform = 'translate(-50%, -50%) scale(0.5)'; if (lifeAdded) { ui.extraLife.style.opacity = '0'; ui.extraLife.style.transform = 'translate(-50%, -50%) scale(0.5)'; }
+                setTimeout(() => { ui.congrats.style.display = 'none'; ui.extraLife.style.display = 'none'; if (level % 5 === 0) { for(let i=0; i<5; i++) diamondCollectibles.push(new Collectible(centerX, centerY, ui.diamondContainer, '#00d2d3', true)); setTimeout(() => { ui.modals.lvl.classList.remove('hidden'); gameState = 'menu'; }, 3000); } else { ui.modals.lvl.classList.remove('hidden'); gameState = 'menu'; } updateUI(); }, 600);
+            }, 2500);
+        }, 3000);
+    }
+
+    function updateUI() { ui.total.innerText = totalScore; ui.level.innerText = level; ui.lives.innerText = lives; ui.timer.innerText = Math.ceil(timeLeft); ui.star.innerText = stars; ui.diamond.innerText = diamonds; ui.lvlProgress.innerText = Math.min(1000, Math.floor(currentLevelScore)); ui.progress.style.width = Math.min(100, (currentLevelScore / 10)) + "%"; }
+
+    function loop(ts) {
+        let dt = (ts - lastTime) / 1000; lastTime = ts; if(dt > 0.1) dt = 0.016; if(slowMotionTimer > 0) { dt *= 0.3; slowMotionTimer -= 0.016; }
+       
+        ctx.fillStyle = '#05050a';
+        if(screenShake > 0) { ctx.save(); ctx.translate((Math.random() - 0.5) * screenShake, (Math.random() - 0.5) * screenShake); screenShake *= 0.9; }
+        ctx.fillRect(0, 0, width, height);
+
+        backgroundStars.forEach(star => {
+            ctx.fillStyle = `rgba(255, 255, 255, ${star.size / 2})`;
+            ctx.fillRect(star.x, star.y, star.size, star.size);
+            let dx = centerX - star.x;
+            let dy = centerY - star.y;
+            star.x += dx * star.speed;
+            star.y += dy * star.speed;
+            let dist = Math.sqrt(dx*dx + dy*dy);
+            if(dist < 10) {
+                if(Math.random() > 0.5) {
+                    star.x = Math.random() > 0.5 ? 0 : width;
+                    star.y = Math.random() * height;
+                } else {
+                    star.x = Math.random() * width;
+                    star.y = Math.random() > 0.5 ? 0 : height;
+                }
+            }
+        });
+
+        let inactiveTime = performance.now() - lastClickTime;
+        if (gameState === 'playing' && inactiveTime > SHRINK_START_TIME) {
+            let intensity = (inactiveTime - SHRINK_START_TIME) / SHRINK_DURATION;
+            ctx.fillStyle = `rgba(255, 0, 0, ${intensity * 0.2})`; ctx.fillRect(0, 0, width, height);
+        }
+
+        if(gameState === 'playing') {
+            if (diamondPowerUpTimer > 0) { diamondPowerUpTimer -= dt; if (diamondPowerUpTimer <= 3) targetCenterR = BASE_CENTER_R; if (diamondPowerUpTimer <= 0) diamondPowerUpTimer = 0; }
+            else { if(inactiveTime > SHRINK_START_TIME) { let shrinkFactor = (inactiveTime - SHRINK_START_TIME) / SHRINK_DURATION; targetCenterR = BASE_CENTER_R - (BASE_CENTER_R - (MIN_CRITICAL_R - 1)) * shrinkFactor; if(targetCenterR < MIN_CRITICAL_R - 0.5) triggerBigBang(); } else { targetCenterR = BASE_CENTER_R; } }
+            let speed = (targetCenterR > currentCenterR) ? 0.05 : 0.02; currentCenterR += (targetCenterR - currentCenterR) * speed;
+        }
+
+        ctx.save();
+        ctx.translate(centerX, centerY);
+       
+        let auraGrad = ctx.createRadialGradient(0, 0, currentCenterR * 0.8, 0, 0, currentCenterR * 2.2);
+        auraGrad.addColorStop(0, 'rgba(0, 0, 0, 1)');
+        auraGrad.addColorStop(0.4, (diamondPowerUpTimer > 3) ? 'rgba(0, 210, 211, 0.3)' : 'rgba(233, 204, 104, 0.15)');
+        auraGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = auraGrad;
+        ctx.beginPath(); ctx.arc(0, 0, currentCenterR * 2.5, 0, Math.PI * 2); ctx.fill();
+
+        let ringThickness = currentCenterR * 0.45;
+        let outerR = currentCenterR;
+        let innerR = currentCenterR - ringThickness;
+
+        let ringGrad = ctx.createRadialGradient(0, 0, innerR, 0, 0, outerR);
+        let baseColor = (diamondPowerUpTimer > 3) ? '#00d2d3' : (holeHitTimer > 0 ? '#ff4757' : (currentCenterR < MIN_CRITICAL_R + 5 ? '#ff4757' : '#eccc68'));
+       
+        ringGrad.addColorStop(0, '#000');
+        ringGrad.addColorStop(0.2, baseColor);
+        ringGrad.addColorStop(0.5, '#fff');
+        ringGrad.addColorStop(0.8, baseColor);
+        ringGrad.addColorStop(1, 'rgba(0,0,0,0.5)');
+
+        ctx.strokeStyle = ringGrad;
+        ctx.lineWidth = ringThickness;
+        ctx.beginPath();
+        ctx.arc(0, 0, outerR - (ringThickness/2), 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.rotate(vortexAngle);
+        if(gameState === 'playing') vortexAngle += 0.06;
+
+        for(let i = 0; i < 10; i++) {
+            ctx.beginPath(); ctx.rotate(Math.PI / 5); ctx.moveTo(0, 0);
+            for(let r = 0; r < outerR; r += 2) {
+                let angleOffset = Math.pow(r / outerR, 0.6) * 5;
+                ctx.globalAlpha = (r > innerR) ? (r - innerR) / ringThickness : 0;
+                ctx.lineTo(r * Math.cos(angleOffset), r * Math.sin(angleOffset));
+            }
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 1.5; ctx.stroke();
+        }
+       
+        ctx.globalAlpha = 1.0;
+        ctx.fillStyle = '#000';
+        ctx.beginPath(); ctx.arc(0, 0, innerR + 1, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+        drawStrokeRing();
+
+        for(let i=balls.length-1; i>=0; i--) { if(!balls[i].update(dt)) balls.splice(i,1); else balls[i].draw(); }
+        for(let i=blocks.length-1; i>=0; i--) { if(gameState==='playing') blocks[i].life -= dt; if(blocks[i].life <=0) blocks.splice(i,1); else blocks[i].draw(); }
+        for(let i=gaps.length-1; i>=0; i--) { if(gameState==='playing') gaps[i].life -= dt; if(gaps[i].life <=0) gaps.splice(i,1); else gaps[i].draw(); }
+        for(let i=floatingTexts.length-1; i>=0; i--) { if(!floatingTexts[i].update(dt)) floatingTexts.splice(i,1); else floatingTexts[i].draw(); }
+        for(let i=confetti.length-1; i>=0; i--) { if(!confetti[i].update()) confetti.splice(i,1); else confetti[i].draw(); }
+        for(let i=particles.length-1; i>=0; i--) { if(!particles[i].update(dt)) particles.splice(i,1); else particles[i].draw(); }
+       
+        starCollectibles = starCollectibles.filter(s => { let active = s.update(); if (!active) { stars++; updateUI(); playSound(1200, 0.05); } else s.draw(); return active; });
+        diamondCollectibles = diamondCollectibles.filter(d => { let active = d.update(); if (!active) { diamonds++; updateUI(); playSound(1500, 0.05); } else d.draw(); return active; });
+
+        if(gameState === 'playing') {
+            timeLeft -= dt; if(timeLeft <= 0) triggerTimeOut();
+            if(Math.random() < 0.05) balls.push(new Ball());
+            if(Math.random() < (level >= 10 ? 0.005 : 0)) balls.push(new Ball(true));
+            if(Math.random() < 0.007) blocks.push(new NeonBlock());
+            if(Math.random() < 0.012) gaps.push(new Gap());
+        }
+
+        if(gameState === 'levelup_anim') { ctx.save(); ctx.strokeStyle = `rgba(236, 204, 104, ${explodeAlpha})`; ctx.lineWidth = 20; ctx.beginPath(); ctx.arc(centerX, centerY, explodeRadius, 0, Math.PI*2); ctx.stroke(); ctx.restore(); explodeRadius += 10; explodeAlpha -= 0.01; }
+        if(screenShake > 0) ctx.restore();
+        requestAnimationFrame(loop);
+    }
+
+    const handleInput = (e) => {
+        if(e.target.closest('.stat-box') || e.target.closest('button')) return;
+        if(gameState === 'playing') handleShot();
+    };
+    window.addEventListener('mousedown', handleInput);
+    window.addEventListener('touchstart', (e) => {
+        if(e.target.closest('.stat-box') || e.target.closest('button')) return;
+        if(gameState === 'playing') { e.preventDefault(); handleShot(); }
+    }, {passive: false});
+    requestAnimationFrame(loop);
+</script>
+</body>
+</html>
