@@ -1156,8 +1156,16 @@ function loop(ts){
       ctx.setLineDash([]);
       ctx.globalAlpha=.28;ctx.strokeStyle='#ffa502';ctx.lineWidth=1.5;
       ctx.beginPath();ctx.arc(0,0,RESCUE_WARN_R,0,Math.PI*2);ctx.stroke();
-      ctx.globalAlpha=.4;ctx.strokeStyle='#ff4757';ctx.lineWidth=2;
+      // Fail ring sits inside the hole's own bright torus (innerR..outerR),
+      // so a thin flat line gets washed out by the gradient behind it.
+      // Glow + pulse + full opacity keep it legible as the hard "don't
+      // touch" boundary regardless of what's rendered underneath.
+      ctx.save();
+      ctx.shadowBlur=14;ctx.shadowColor='#ff4757';
+      ctx.globalAlpha=.75+.25*Math.sin(Date.now()*.012);
+      ctx.strokeStyle='#ff4757';ctx.lineWidth=3.5;
       ctx.beginPath();ctx.arc(0,0,RESCUE_FAIL_R,0,Math.PI*2);ctx.stroke();
+      ctx.restore();
     } else {
       ctx.globalAlpha=.18;ctx.strokeStyle=tc;ctx.lineWidth=1.5;
       ctx.beginPath();ctx.arc(0,0,suckDist,0,Math.PI*2);ctx.stroke();
