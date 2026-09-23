@@ -440,6 +440,7 @@ const canvas=document.getElementById('gc');
 const ctx=canvas.getContext('2d');
 let W,H;
 let hX,hY;
+let idleAnchorX=0,idleAnchorY=0; // where the hole drifts around when the player isn't touching it
 let isDragging=false,dragOffX=0,dragOffY=0;
 let gState='idle'; // idle|playing|paused|complete|over
 let curLevelIdx=0,curLvDef=null;
@@ -476,7 +477,7 @@ let lastInteractT=0; // for inactivity hint
 function resize(){
   W=window.innerWidth;H=window.innerHeight-58;
   canvas.width=W;canvas.height=H;
-  hX=W/2;hY=H/2;
+  hX=W/2;hY=H/2;idleAnchorX=hX;idleAnchorY=hY;
   bgStars=[];
   for(let i=0;i<160;i++)bgStars.push({x:Math.random()*W,y:Math.random()*H,s:Math.random()*2+.3,sp:Math.random()*.004+.001,tw:Math.random()*Math.PI*2});
 }
@@ -503,7 +504,7 @@ function onPointerMove(e){
   hY=Math.max(50,Math.min(H-50,(pt.clientY-58)+dragOffY));
   lastInteractT=elapsed;
 }
-function onPointerUp(){isDragging=false;}
+function onPointerUp(){isDragging=false;idleAnchorX=hX;idleAnchorY=hY;}
 
 canvas.addEventListener('mousedown',onPointerDown);
 canvas.addEventListener('mousemove',onPointerMove);
@@ -831,6 +832,12 @@ document.getElementById('liStartBtn').onclick=()=>{
 // ════════════════════════════════════════
 // START LEVEL
 // ════════════════════════════════════════
+// Ghost balls (translucent, flickering, worth ~32pts vs a normal 12) were
+// fully implemented - class flag, scoring, draw() flicker - but nothing
+// ever spawned one with ghost:true. From world 2 onward (idx>=5) give
+// normal/maze spawns a modest chance of coming in as a ghost.
+function maybeGhost(){return curLevelIdx>=5&&Math.random()<0.15;}
+
 function startLevel(){
   let lv=curLvDef;
   score=0;lives=lv.lives;timeLeft=lv.timeLimit;elapsed=0;
@@ -840,7 +847,7 @@ function startLevel(){
   rescueDone=false;rescueCount=0;rescueTarget=lv.rescueCount||1;
   rescueShip=null;rescueWarnPlayed=false;rescueDangerT=0;
   hintShown=false;lastInteractT=0;
-  hX=W/2;hY=H/2;
+  hX=W/2;hY=H/2;idleAnchorX=hX;idleAnchorY=hY;
   suckDist=SUCK_DIST_BASE+Math.min(curLevelIdx*1.5,28);
 
   document.getElementById('drag-hint').style.display='block';
@@ -854,7 +861,7 @@ function startLevel(){
   let spd=0.8+curLevelIdx*.055;
   if(lv.type==='normal'||lv.type==='maze'){
     let cnt=Math.min(lv.ballCount||10,8);
-    for(let i=0;i<cnt;i++)balls.push(new Ball({speed:spd}));
+    for(let i=0;i<cnt;i++)balls.push(new Ball({speed:spd,ghost:maybeGhost()}));
     if(lv.type==='maze')spawnBarriers();
   } else if(lv.type==='avoid'){
     let cnt=lv.ballCount||12,red=Math.floor(cnt*.32);
@@ -945,6 +952,15 @@ function loop(ts){
     updateStarIndicators();
     updateHUD();
 
+    // Idle drift: the hole never sits perfectly still while the player
+    // isn't touching it - a small, slow Lissajous wobble around wherever
+    // they last let go, so it still reads as "alive" between touches.
+    // Kept deliberately small (7px) so it can't drift into a ball or
+    // (in rescue levels) the ship's push/fail radii on its own.
+    if(!isDragging){
+      hX=idleAnchorX+Math.sin(elapsed*0.9)*7;
+      hY=idleAnchorY+Math.cos(elapsed*0.65)*7;
+    }
     // Clamp hole
     hX=Math.max(50,Math.min(W-50,hX));
     hY=Math.max(50,Math.min(H-50,hY));
@@ -1078,7 +1094,7 @@ function loop(ts){
       let active=balls.filter(b=>b.suckPhase==='normal').length;
       let target=Math.min(curLvDef.ballCount||10,7);
       if(!targetReached&&active<target){
-        balls.push(new Ball({speed:0.8+curLevelIdx*.05}));
+        balls.push(new Ball({speed:0.8+curLevelIdx*.05,ghost:maybeGhost()}));
       }
     }
     // ── Avoid refill ──
@@ -1088,7 +1104,12 @@ function loop(ts){
       let fCount=allActive.filter(b=>b.forbidden).length;
       if(nCount<Math.min(Math.ceil((curLvDef.ballCount||12)*.65),5))
         balls.push(new Ball({color:`hsl(${175+Math.random()*90},80%,56%)`,speed:0.8+curLevelIdx*.05}));
-      if(fCount<1&&nCount<2)
+      // Forbidden balls have their own refill target, independent of how
+      // many safe balls are onscreen - tying it to nCount<2 meant that
+      // once the safe-ball refill (above) kept nCount near 5, forbidden
+      // balls effectively stopped respawning for the rest of the level.
+      let fTarget=Math.max(1,Math.round((curLvDef.ballCount||12)*.25));
+      if(fCount<fTarget)
         balls.push(new Ball({forbidden:true,speed:0.8+curLevelIdx*.05}));
     }
     // ── Escape refill ──
