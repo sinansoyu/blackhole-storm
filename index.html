@@ -76,7 +76,7 @@ body{overflow:hidden;background:var(--bg);font-family:'Rajdhani',sans-serif;heig
 @keyframes timerShake{0%{transform:translateX(0)}25%{transform:translateX(-3px)}75%{transform:translateX(3px)}100%{transform:translateX(0)}}
 #ghdr-pb-wrap{position:absolute;bottom:0;left:0;width:100%;height:3px;background:rgba(0,0,0,.5);}
 #ghdr-pb{height:100%;background:linear-gradient(90deg,var(--gold),#ffa502);transition:width .3s linear;box-shadow:0 0 6px var(--gold);}
-#star-indicators{position:absolute;top:50%;right:46px;transform:translateY(-50%);display:flex;gap:3px;}
+#star-indicators{display:flex;align-items:center;gap:3px;flex-shrink:0;}
 .si-star{font-size:15px;transition:all .4s;}
 .si-star.lit{color:var(--gold);text-shadow:0 0 10px var(--gold);}
 .si-star.dim{color:rgba(255,255,255,.12);}
@@ -458,7 +458,16 @@ const SUCK_DIST_BASE=52;
 let suckDist=SUCK_DIST_BASE;
 // Rescue push/danger radii — must stay clearly larger apart so the two
 // warning rings drawn around the hole (see loop()) never overlap/confuse.
-const RESCUE_PUSH_R=100,RESCUE_WARN_R=48,RESCUE_FAIL_R=32;
+const RESCUE_PUSH_R=100,RESCUE_WARN_R=48,RESCUE_FAIL_R=22;
+// A real (imperfect, lagged) drag test lost all 3 lives without a single
+// rescue: 1:1 finger tracking has no deadzone, so any small overshoot put
+// the hole past the old 32px fail radius and cost a life instantly, with
+// no way to recover. RESCUE_FAIL_DANGER_T is a short grace window - the
+// ship only actually gets lost if the hole stays inside the fail radius
+// for longer than this, so a brief graze while chasing/correcting course
+// no longer ends the attempt.
+const RESCUE_FAIL_DANGER_T=0.35;
+let rescueDangerT=0;
 let rescueWarnPlayed=false;
 let hintShown=false;
 let targetReached=false; // flag: score goal hit
@@ -624,11 +633,18 @@ class Ship{
     // Friction
     this.vx*=.98;this.vy*=.98;
     this.x+=this.vx;this.y+=this.vy;
-    // Soft bounce off walls (stay on screen)
-    if(this.x<30){this.vx+=.5;this.x=Math.max(30,this.x);}
-    if(this.x>W-30){this.vx-=.5;this.x=Math.min(W-30,this.x);}
-    if(this.y<30){this.vy+=.5;this.y=Math.max(30,this.y);}
-    if(this.y>H-30){this.vy-=.5;this.y=Math.min(H-30,this.y);}
+    // Soft bounce off walls (stay on screen). Margin must stay bigger than
+    // the hole's own drag clamp (50px, see onPointerMove) - otherwise the
+    // ship can come to rest in the 20px band the hole can never reach past,
+    // and since a push always shoves the ship AWAY from the hole, it gets
+    // permanently pinned against that wall with no way to push it back out
+    // (confirmed via a scripted drag test: the ship sat wedged in a corner,
+    // unmovable, for the rest of the level).
+    const SHIP_WALL_MARGIN=55;
+    if(this.x<SHIP_WALL_MARGIN){this.vx+=.5;this.x=Math.max(SHIP_WALL_MARGIN,this.x);}
+    if(this.x>W-SHIP_WALL_MARGIN){this.vx-=.5;this.x=Math.min(W-SHIP_WALL_MARGIN,this.x);}
+    if(this.y<SHIP_WALL_MARGIN){this.vy+=.5;this.y=Math.max(SHIP_WALL_MARGIN,this.y);}
+    if(this.y>H-SHIP_WALL_MARGIN){this.vy-=.5;this.y=Math.min(H-SHIP_WALL_MARGIN,this.y);}
   }
   draw(){
     for(let t of this.trail){
@@ -822,7 +838,7 @@ function startLevel(){
   balls=[];barriers=[];ftexts=[];particles=[];confetti=[];
   bossTotal=lv.bossCount||1;bossDefeated=0;ballsCaught=0;
   rescueDone=false;rescueCount=0;rescueTarget=lv.rescueCount||1;
-  rescueShip=null;rescueWarnPlayed=false;
+  rescueShip=null;rescueWarnPlayed=false;rescueDangerT=0;
   hintShown=false;lastInteractT=0;
   hX=W/2;hY=H/2;
   suckDist=SUCK_DIST_BASE+Math.min(curLevelIdx*1.5,28);
@@ -1021,7 +1037,11 @@ function loop(ts){
       // Hole pushes ship when nearby
       let ddx=rescueShip.x-hX,ddy=rescueShip.y-hY,dd=Math.hypot(ddx,ddy)||1;
       if(dd<RESCUE_PUSH_R){
-        let str=(1-dd/RESCUE_PUSH_R)*2.2;
+        // A real drag test showed the old force (2.2) needed many careful,
+        // sustained close approaches to move the ship meaningfully - each
+        // one a chance to overshoot into the fail radius. Stronger push
+        // means fewer, shorter approaches get the job done.
+        let str=(1-dd/RESCUE_PUSH_R)*3.6;
         rescueShip.vx+=(ddx/dd)*str;
         rescueShip.vy+=(ddy/dd)*str;
         beep(580+rescueCount*15,.025,'sine',.04);
@@ -1038,8 +1058,15 @@ function loop(ts){
       if(Math.hypot(rescueShip.x-rescueZone.x,rescueShip.y-rescueZone.y)<rescueZone.r+rescueShip.r){
         handleRescueSuccess();
       }
-      // Sucked into hole?
-      if(dd<RESCUE_FAIL_R){handleRescueFail();}
+      // Sucked into hole? Give a short grace window instead of failing on
+      // first contact - a brief graze while correcting course shouldn't
+      // cost a life, only genuinely lingering inside the fail radius should.
+      if(dd<RESCUE_FAIL_R){
+        rescueDangerT+=dt;
+        if(rescueDangerT>RESCUE_FAIL_DANGER_T){rescueDangerT=0;handleRescueFail();}
+      } else {
+        rescueDangerT=0;
+      }
     }
 
     // ── Boss: extra ball refill ──
