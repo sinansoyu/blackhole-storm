@@ -566,7 +566,8 @@ let hX=150,hY=150,hBaseX=150,hBaseY=150,hWanderT=0,hWpTimer=0,hAmp={x:0,y:0};
 const WP_INT=4.0;
 let level=1,lives=3,gameMode='classic',gState='menu';
 let totalScore=0,levelScore=0,levelStartScore=0;
-let comboCount=0,maxCombo=0,comboMult=1,perfectCount=0,bossSlain=false,livesAtStart=3,bombsInLevel=0;
+let comboCount=0,maxCombo=0,comboMult=1,perfectCount=0,bossSlain=false,bossKills=0,livesAtStart=3,bombsInLevel=0;
+function levelDone(){return gameMode==='classic'&&levelScore>=levelTarget(level)&&bossKills>=bossCount(level);}
 let balls=[],blocks=[],rifts=[],ftexts=[],sparks=[],shards=[],dust=[],cols=[];
 let slowMo=0,shake=0,heat=0,shock=0,flash=0,ringPulse=0,explR=0,explA=0;
 let PU={slow:0,magnet:0,mult:0},diamTimer=0;
@@ -989,7 +990,7 @@ function levelCheck(){
 }
 function initLevel(){
   runId++;pendingWin=false;$('minus').style.display='none';isRescueLevel=false;levelStartScore=totalScore;levelScore=0;comboCount=0;comboMult=1;curR=BASE_R;tgtR=BASE_R;
-  bombsInLevel=0;balls=[];blocks=[];rifts=[];ftexts=[];PU={slow:0,magnet:0,mult:0};livesAtStart=lives;updateCombo();
+  bombsInLevel=0;bossKills=0;balls=[];blocks=[];rifts=[];ftexts=[];PU={slow:0,magnet:0,mult:0};livesAtStart=lives;updateCombo();
   savedLevel=level;savedScore=totalScore;saveG();
   updateUI();gState='playing';lastT=performance.now();resetInact();
   const bc=bossCount(level);if(bc>=1)balls.push(new Ball(false,'boss'));
@@ -1026,9 +1027,9 @@ function handleShot(tx,ty){
     for(let i=0;i<20;i++)sparks.push(new Spark(cap.x,cap.y,pick(['#ff6a3d','#ffcf7a','#ffffff']),rnd(0,TAU),rnd(1.5,5),.7,2));
     addFT(cap.bossHP>0?`${cap.bossHP} HP`:'PARÇALANDI!',cap.x,cap.y-cap.r-12,'#ffcf7a',15);
     if(navigator.vibrate)try{navigator.vibrate(30);}catch(e){}
-    if(cap.bossHP<=0){cap.startSuck();comboCount++;const pts=5000+level*100;totalScore+=pts;levelScore+=pts;bossSlain=true;flash=1;shake=24;
+    if(cap.bossHP<=0){cap.startSuck();comboCount++;const pts=5000+level*100;totalScore+=pts;levelScore+=pts;bossSlain=true;bossKills++;flash=1;shake=24;
       addFT('+'+pts.toLocaleString('tr-TR'),cap.x,cap.y,'#ffd76a',26);sfx('bossDie',{vol:.9,rev:.35});sfx('boom',{vol:.9,rev:.3,delay:.08});
-      updateUI();checkAchs();later(()=>{if(gameMode==='classic'&&levelScore>=levelTarget(level))levelSuccess();},900);}
+      updateUI();checkAchs();later(()=>{if(levelDone())levelSuccess();},900);}
     return;
   }
   if(cap.armor>0){cap.armor--;cap.armorBroken=true;sfx('armor',{vol:.8,x:cap.x});shake=5;for(let i=0;i<18;i++)shards.push(new Shard(cap.x,cap.y,'rgba(150,220,255,.9)'));addFT('KALKAN KIRILDI',cap.x,cap.y-22,'#8fe9ff',13);return;}
@@ -1046,7 +1047,7 @@ function handleShot(tx,ty){
   totalScore+=pts;ringPulse=1;
   addFT('+'+pts,cap.x,cap.y-8,cap.isMaster?'#ffd76a':pts>=18?'#7dffb3':'#ffffff',pts>=18?22:18);
   updateUI();checkAchs();
-  if(gameMode==='classic'&&levelScore>=levelTarget(level))later(()=>levelSuccess(),300);
+  if(levelDone())later(()=>levelSuccess(),300);
 }
 function activatePU(tp,b){
   sfx('powerup',{vol:.6,x:b.x});
@@ -1060,7 +1061,7 @@ async function processBomb(){
   gState='pen_freeze';const targets=balls.filter(x=>!x.suck&&!x.ptype&&!x.isBoss);let i=0;
   for(const b of targets){b.startSuck();const p=b.isGhost?50:20;totalScore+=p;levelScore+=p;addFT('+'+p,b.x,b.y,'#ff8a6b',16);
     if(i++%2===0)sfx('capture',{vol:.35,rate:1.2+Math.min(.6,i*.04),x:b.x});updateUI();await new Promise(r=>setTimeout(r,55));}
-  later(()=>{if(gState!=='pen_freeze')return;if(gameMode==='classic'&&levelScore>=levelTarget(level))levelSuccess();else{gState='playing';lastT=performance.now();resetInact();}},600);
+  later(()=>{if(gState!=='pen_freeze')return;if(levelDone())levelSuccess();else{gState='playing';lastT=performance.now();resetInact();}},600);
 }
 function updateCombo(){
   const el=$('combo');
