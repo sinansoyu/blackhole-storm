@@ -32,8 +32,11 @@ if command -v agent-reach >/dev/null 2>&1; then
 fi
 
 mkdir -p "$HOME/.config/yt-dlp"
-grep -qxF -- '--js-runtimes node' "$HOME/.config/yt-dlp/config" 2>/dev/null \
-  || echo '--js-runtimes node' >> "$HOME/.config/yt-dlp/config"
+# yt-dlp düz "node" adını bulamıyor; tam yol verilmeli
+NODE_BIN="$(readlink -f "$(command -v node)" 2>/dev/null)"
+if [ -n "$NODE_BIN" ]; then
+  echo "--js-runtimes node:$NODE_BIN" > "$HOME/.config/yt-dlp/config"
+fi
 
 if command -v mcporter >/dev/null 2>&1; then
   mcporter config add exa https://mcp.exa.ai/mcp --scope home >/dev/null 2>&1 || true
