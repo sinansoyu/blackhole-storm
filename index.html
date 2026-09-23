@@ -450,6 +450,7 @@ let vortex=0,shake=0;
 let bgStars=[];
 // Boss
 let bossTotal=0,bossDefeated=0;
+let ballsCaught=0; // actual ball catches, so "İlk Yakalama" can't be triggered by rescue/other score
 // Rescue
 let rescueShip=null,rescueZone={x:0,y:0,r:65},rescueDone=false;
 let rescueCount=0,rescueTarget=1;
@@ -819,7 +820,7 @@ function startLevel(){
   score=0;lives=lv.lives;timeLeft=lv.timeLimit;elapsed=0;
   comboCount=0;maxCombo=0;targetReached=false;
   balls=[];barriers=[];ftexts=[];particles=[];confetti=[];
-  bossTotal=lv.bossCount||1;bossDefeated=0;
+  bossTotal=lv.bossCount||1;bossDefeated=0;ballsCaught=0;
   rescueDone=false;rescueCount=0;rescueTarget=lv.rescueCount||1;
   rescueShip=null;rescueWarnPlayed=false;
   hintShown=false;lastInteractT=0;
@@ -966,6 +967,7 @@ function loop(ts){
           if(lives<=0){gState='over';setTimeout(()=>showResult(0),400);return;}
         } else {
           b.startSuck();
+          ballsCaught++;
           comboCount++;if(comboCount>maxCombo)maxCombo=comboCount;
           let pts=calcPoints(d,attractR,b);
           score+=pts;
@@ -1375,7 +1377,7 @@ function goMap(){
 // ACHIEVEMENTS
 // ════════════════════════════════════════
 const ACHS=[
-  {id:'first_catch',icon:'🎯',title:'İlk Yakalama',desc:'Bir topu yutturmayı başardın!',check:()=>score>0&&elapsed<8},
+  {id:'first_catch',icon:'🎯',title:'İlk Yakalama',desc:'Bir topu yutturmayı başardın!',check:()=>ballsCaught>0&&elapsed<8},
   {id:'combo5',icon:'🔥',title:'Ateş Hattı',desc:'5 ard arda yakaladın',check:()=>comboCount>=5},
   {id:'combo10',icon:'💥',title:'COMBO TANRI',desc:'10 ard arda!',check:()=>comboCount>=10},
   {id:'boss_kill',icon:'🗡️',title:'Boss Katili',desc:'Bir Boss\'u yok ettin',check:()=>curLvDef&&curLvDef.type==='boss'&&bossDefeated>0},
