@@ -693,7 +693,7 @@ class Boss{
     return true;
   }
   hit(){
-    this.hp--;this.hitFlash=.25;
+    this.hp--;this.hitFlash=.4;
     if(navigator.vibrate)navigator.vibrate(30);
     playBossHit(this.hp);
   }
@@ -944,7 +944,11 @@ function loop(ts){
 
       if(d<attractR){
         if(b instanceof Boss){
-          if(b.suckPhase!=='normal')continue;
+          // hitFlash doubles as a brief post-hit invulnerability window -
+          // without it, holding the hole still on a slow-moving boss re-hits
+          // it every single frame it stays in range, melting all 5 HP in
+          // ~100ms instead of requiring 5 separate approaches.
+          if(b.suckPhase!=='normal'||b.hitFlash>0)continue;
           b.hit();shake=6;
           for(let p=0;p<10;p++)particles.push(new Pt(b.x,b.y,'#ff4757'));
           addFT(`HIT! (${b.hp}HP)`,b.x,b.y-25,'#ffd700',13);
@@ -989,12 +993,24 @@ function loop(ts){
     checkAchs();
 
     // ── Barrier collisions ──
+    // A flat 2px nudge isn't enough to clear a barrier once the ball's own
+    // radius (10-15px) is added to the collision band (bar.w/h + 2*ball.r
+    // can be 30-40px wide) - the ball stayed "inside" next frame and got
+    // its velocity flipped again, and again, netting near-zero movement
+    // along that axis. Clamp the ball fully outside the barrier edge (on
+    // whichever side it's already on) instead, the same way the screen
+    // edges are handled, so one collision fully resolves it.
     for(let b of balls){
       if(b.suckPhase!=='normal')continue;
       for(let bar of barriers){
         if(bar.blocks(b)){
-          if(bar.w>bar.h){b.vy*=-1;b.y+=b.vy>0?2:-2;}
-          else{b.vx*=-1;b.x+=b.vx>0?2:-2;}
+          if(bar.w>bar.h){
+            b.vy*=-1;
+            b.y=(b.y<bar.y+bar.h/2)?bar.y-b.r-0.5:bar.y+bar.h+b.r+0.5;
+          } else {
+            b.vx*=-1;
+            b.x=(b.x<bar.x+bar.w/2)?bar.x-b.r-0.5:bar.x+bar.w+b.r+0.5;
+          }
         }
       }
     }
