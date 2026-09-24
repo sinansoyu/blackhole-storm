@@ -751,7 +751,7 @@ function glDraw(t,sx=0,sy=0){
 function drawBodyGL(b,k,sx,sy){
   const gl=GL.gl,u=GL.body.u,fall=b.suck&&b.suck.ph==='fall';
   const L=litFrom(b.x,b.y),d=Math.hypot(b.x-hX,b.y-hY);
-  gl.uniform2f(u.uC,(b.x+sx)*k,(H-b.y-sy)*k);gl.uniform1f(u.uRad,b.r*k);
+  gl.uniform2f(u.uC,(b.x+sx)*k,(H-b.y-sy)*k);gl.uniform1f(u.uRad,b.r*k*(b.gs??1));
   if(fall){gl.uniform1f(u.uAng,-b.radAng);gl.uniform1f(u.uSt,b.stretch);gl.uniform1f(u.uSq,b.squeeze);}
   else{gl.uniform1f(u.uAng,0);gl.uniform1f(u.uSt,b.sX);gl.uniform1f(u.uSq,b.sY);}
   gl.uniform1f(u.uPad,b.isBoss?2.3:1.3);
@@ -805,14 +805,16 @@ const INACT=20;let lastTap=performance.now(),lastTickSec=-1;
 // catch ring 29 px; the shadow is RING_K times smaller so the glow sits inside the ring
 const BASE_R=29,RING_K=1.45;let curR=BASE_R,tgtR=BASE_R;
 let catchable=false,inputLock=false,dangerBeep=0,runId=0,pendingWin=false;
-let neutT=0,antiNear=false,dangerK=0,lostThisLevel=false,runStartBest=0,lastSurvSec=-1;
+let levelT=0,masterUsed=false,neutT=0,antiNear=false,dangerK=0,lostThisLevel=false,runStartBest=0,lastSurvSec=-1;
 function ringTarget(){return BASE_R*(diamTimer>3?2:neutT>0?1.5:1);}
 let saveTimer=0;function saveSoon(){clearTimeout(saveTimer);saveTimer=setTimeout(saveG,1200);}
 // Game-flow timers are tied to the level/run that started them: a timer left over from a
 // finished level, a rescue that ended, or a run abandoned from the pause menu must not fire later.
 function later(fn,ms){const id=runId;setTimeout(()=>{if(id===runId)fn();},ms);}
 const PU_COL={slow:'#7cc6ff',bomb:'#ff5a3c',magnet:'#c07bff',mult:'#5dfb9b'};
-function levelTarget(l){return Math.min(950,260+(l-1)*55);}
+function levelTarget(l){return l<=3?90+60*l:Math.min(950,330+(l-4)*55);} // 150, 210, 270, then +55 per level
+function pullK(){return gameMode==='survival'?.004:level<=3?.018:level<=6?.011:level<=12?.006:level<=20?.004:.0025;}
+function earlyBoost(){return gameMode==='classic'?Math.max(1,1.7-(level-1)*.14):1;} // denser traffic in the first levels
 function effLevel(){return gameMode==='survival'?Math.floor(survTime/30)+1:level;}
 function bossActive(){return balls.some(b=>b.isBoss&&!b.suck);}
 function physicsOn(){return gState==='playing'||gState==='pen_blink'||gState==='rescue_play';}
@@ -1018,14 +1020,14 @@ function giveSpin(b){ // each body spins on its own tilted axis; some tumble irr
   b.wobA=Math.random()<.22?rnd(.5,.9):rnd(.05,.3);b.wobF=rnd(.4,1.6);b.irrF=rnd(.5,1.7);b.ph=rnd(0,TAU);
 }
 class Ball{
-  constructor(isMaster=false,forceType=null){
+  constructor(isMaster=false,forceType=null,opt={}){
     const eff=effLevel();this.isMaster=isMaster;this.rot=Math.random()*TAU;this.spin=rnd(-.7,.7);this.sX=1;this.sY=1;this.suck=null;this.age=0;giveSpin(this);
     if(forceType==='boss'){
       this.isBoss=true;this.bossHP=5+Math.floor(eff/10);this.maxHP=this.bossHP;this.r=30;this.sprite=SPR.boss;this.cell=12;this.color='#ff6a3d';this.spinV=.25;this.wobA=.05;
       this.x=clamp(hX+rnd(-60,60),60,W-60);this.y=clamp(hY-130,60,H-60);this.vx=rnd(-.5,.5);this.vy=.5;this.hitFlash=0;return;
     }
     let kind=forceType;
-    if(!kind&&!isMaster){
+    if(!kind&&!isMaster&&!opt.plain){
       if(eff>=3&&Math.random()<.11)kind='pu';
       else{const r=Math.random();let acc=0;
         for(const [k,lv,pr] of SPECIAL_ODDS){if(eff<lv)continue;if((k==='anti'||k==='dark')&&countKind(k)>=2)continue;acc+=pr;if(r<acc){kind=k;break;}}}
@@ -1048,19 +1050,26 @@ class Ball{
         if(kind==='split'){this.kind='split';this.r=rnd(11,13);this.armor=0;}
         else if(kind==='moon'){this.kind='moonP';this.r=rnd(10.5,12.5);this.armor=0;}}
     }
-    const sd=Math.floor(Math.random()*4);
-    if(sd===0){this.x=Math.random()*W;this.y=-30;}else if(sd===1){this.x=W+30;this.y=Math.random()*H;}else if(sd===2){this.x=Math.random()*W;this.y=H+30;}else{this.x=-30;this.y=Math.random()*H;}
-    const ang=Math.atan2(rnd(H*.15,H*.85)-this.y,rnd(W*.15,W*.85)-this.x);
+    const early=gameMode==='classic'?Math.max(0,4-level):0,free=!isMaster&&!forceType;
+    const inside=free&&(opt.near||opt.inside||Math.random()<(early?.25+early*.1:.1));
+    this.gs=inside?0:1;
+    if(opt.near){const a=rnd(0,TAU),d=rnd(105,135);this.x=clamp(hX+Math.cos(a)*d,24,W-24);this.y=clamp(hY+Math.sin(a)*d,24,H-24);}
+    else if(inside){let tries=0;do{this.x=rnd(30,W-30);this.y=rnd(30,H-30);}while((Math.hypot(this.x-hX,this.y-hY)<curR*3.5||(early&&Math.hypot(this.x-hX,this.y-hY)>230))&&++tries<30);}
+    else{const sd=Math.floor(Math.random()*4);
+      if(sd===0){this.x=Math.random()*W;this.y=-30;}else if(sd===1){this.x=W+30;this.y=Math.random()*H;}else if(sd===2){this.x=Math.random()*W;this.y=H+30;}else{this.x=-30;this.y=Math.random()*H;}}
+    const aimP=opt.near?1:gameMode==='survival'?.3:level<=3?.65:level<=6?.45:.3;
+    const ang=free&&Math.random()<aimP?Math.atan2(hY+rnd(-30,30)-this.y,hX+rnd(-30,30)-this.x):Math.atan2(rnd(H*.15,H*.85)-this.y,rnd(W*.15,W*.85)-this.x);
     const base=gameMode==='survival'?1.15+survSpeed:.62+level*.07;
     let spd=isMaster?16:Math.min(base*(this.ptype==='bomb'?1.1:this.isGhost?1.08:1),3.6);
+    if(opt.near)spd=Math.max(spd,1.05);
     if(this.kind==='comet')spd=clamp(base*2.2,2.4,5.2);else if(this.kind==='dark'||this.kind==='anti')spd*=.85;
-    this.vx=Math.cos(ang)*spd;this.vy=Math.sin(ang)*spd;
+    this.vx=Math.cos(ang)*spd;this.vy=Math.sin(ang)*spd;this.vmax=Math.max(spd*1.9,1.6);
     if(this.kind==='moonP'){const m=new Ball(false,'moonChild');m.parent=this;m.oa=rnd(0,TAU);m.ow=rnd(1.8,2.8)*(Math.random()<.5?1:-1);m.orR=this.r+9;m.x=this.x;m.y=this.y;this.child=m;}
   }
   startSuck(){const dx=this.x-hX,dy=this.y-hY;this.suck={t:0,ph:'pop',a0:Math.atan2(dy,dx),r0:Math.max(6,Math.hypot(dx,dy)),dir:Math.random()<.5?1:-1,br:this.r};}
   spinStep(dt,k){this.spinA+=this.spinV*(1+.35*Math.sin(this.age*this.irrF+this.ph))*dt*k;}
   update(dt,f){
-    this.age+=dt;
+    this.age+=dt;if(this.gs<1){if(this.gs===0)for(let i=0;i<8;i++)sparks.push(new Spark(this.x,this.y,'#e6f0ff',rnd(0,TAU),rnd(.6,1.8),.4,1.2));this.gs=Math.min(1,this.age/.35);}
     if(this.suck){
       const s=this.suck;s.t+=dt;
       if(s.ph==='pop'){this.r=s.br*(1+.28*Math.sin(Math.min(1,s.t/.1)*Math.PI));this.spinStep(dt,2);if(s.t>=.1){s.ph='fall';s.t=0;this.r=s.br;}return true;}
@@ -1080,6 +1089,8 @@ class Ball{
     if(this.isMaster&&this.age>5.5){for(let i=0;i<14;i++)sparks.push(new Spark(this.x,this.y,'#ffd76a',rnd(0,TAU),rnd(1,4),.6,2));return false;}
     if(this.hitFlash>0)this.hitFlash-=dt;
     if(this.isBoss){const dx=hX-this.x,dy=hY-this.y,d=Math.hypot(dx,dy)||1;this.vx+=dx/d*.012*f;this.vy+=dy/d*.012*f;const sp=Math.hypot(this.vx,this.vy);if(sp>1.3){this.vx*=1.3/sp;this.vy*=1.3/sp;}} // the giant is slowly drawn in
+    if(!this.isBoss&&!this.isMaster&&this.kind!=='comet'){const g=pullK();if(g){const dx=hX-this.x,dy=hY-this.y,d=Math.hypot(dx,dy)||1;if(d>curR*.9){const a=g*f*Math.min(1,160/d);this.vx+=dx/d*a;this.vy+=dy/d*a;
+      const sp=Math.hypot(this.vx,this.vy),mx=this.vmax||3;if(sp>mx){this.vx*=mx/sp;this.vy*=mx/sp;}}}}
     if(PU.magnet>0&&!this.isBoss&&this.kind!=='anti'){const dx=hX-this.x,dy=hY-this.y,d=Math.hypot(dx,dy)||1;if(d>curR+this.r){this.vx+=dx/d*.45*f;this.vy+=dy/d*.45*f;const sp=Math.hypot(this.vx,this.vy);if(sp>6){this.vx*=6/sp;this.vy*=6/sp;}}}
     const sf=(PU.slow>0?.3:1)*f;
     this.x+=this.vx*sf;this.y+=this.vy*sf;this.rot+=this.spin*dt*(PU.slow>0?.3:1);this.spinStep(dt,PU.slow>0?.3:1);
@@ -1200,7 +1211,7 @@ function drawBall(tc,b,prev=false,body=true){
   tc.save();tc.translate(b.x,b.y);
   const L=prev?{x:-.6,y:-.8,k:1}:litFrom(b.x,b.y);
   if(b.suck&&b.suck.ph==='fall'){tc.rotate(b.radAng);tc.scale(b.stretch,b.squeeze);tc.rotate(-b.radAng);tc.globalAlpha=b.fade;}
-  else if(!prev){tc.scale(b.sX,b.sY);}
+  else if(!prev){const g=b.gs??1;tc.scale(b.sX*g,b.sY*g);}
   const r=b.r;
   if(b.isBoss){
     if(body){const pulse=1+.04*Math.sin(clock*3);tc.globalCompositeOperation='lighter';
@@ -1436,16 +1447,18 @@ function levelCheck(noZone){
 }
 function initLevel(){
   runId++;pendingWin=false;$('minus').style.display='none';isRescueLevel=false;levelStartScore=totalScore;levelScore=0;comboCount=0;comboMult=1;curR=BASE_R;tgtR=BASE_R;
-  bombsInLevel=0;bossKills=0;neutT=0;lostThisLevel=false;balls=[];blocks=[];rifts=[];ftexts=[];PU={slow:0,magnet:0,mult:0};livesAtStart=lives;updateCombo();
+  bombsInLevel=0;bossKills=0;neutT=0;lostThisLevel=false;levelT=0;masterUsed=false;balls=[];blocks=[];rifts=[];ftexts=[];PU={slow:0,magnet:0,mult:0};livesAtStart=lives;updateCombo();
   savedLevel=level;savedScore=totalScore;saveG();
   updateUI();gState='playing';lastT=performance.now();resetInact();
   const bc=bossCount(level);if(bc>=1)balls.push(new Ball(false,'boss'));setZone(zoneOf(level));
   if(bc>=2)later(()=>{if(gameMode==='classic')balls.push(new Ball(false,'boss'));},2000);
+  if(!bc){const n=level<=3?4:2;for(let i=0;i<n;i++)spawnBall(new Ball(false,null,{inside:true}));
+    if(level===1)[500,1700,2900].forEach(ms=>later(()=>{if(gState==='playing')spawnBall(new Ball(false,null,{near:true,plain:true}));},ms));}
   SND.setDrone(bossActive()?.24:.14,bossActive()?420:650);
   $('lvPill').animate([{background:'rgba(242,196,109,.35)'},{background:'rgba(255,255,255,.04)'}],{duration:700});
   showHint();
 }
-function startSurvival(){runId++;setZone(0);gState='playing';lastT=performance.now();livesAtStart=lives;balls=[];resetInact();showHint();}
+function startSurvival(){runId++;setZone(0);levelT=0;masterUsed=false;gState='playing';lastT=performance.now();livesAtStart=lives;balls=[];resetInact();showHint();}
 let hintTimer=0;function showHint(){const h=$('hint');h.style.opacity='1';clearTimeout(hintTimer);hintTimer=setTimeout(()=>h.style.opacity='0',3500);}
 function useDiamond(){
   if(gState!=='playing'||diamonds<20||diamTimer>0){if(gState==='playing'&&diamonds<20){addFT('20 💎 GEREKLİ',hX,hY-curR-26,'#8fe9ff',14);sfx('buzz',{vol:.25});}return;}
@@ -1633,10 +1646,10 @@ function loop(ts){
 
   // spawn
   if(gState==='playing'){
-    const cap=Math.min(20,12+Math.floor(effLevel()/3));const active=balls.filter(b=>!b.suck).length;
-    const sr=(gameMode==='survival'?.034+survSpeed*.003:.036)*f;
+    const eb=earlyBoost(),cap=Math.min(20,12+Math.floor(effLevel()/3)+(eb>1?3:0));const active=balls.filter(b=>!b.suck).length;
+    const sr=(gameMode==='survival'?.034+survSpeed*.003:.036*eb)*f;
     if(active<cap&&Math.random()<sr)spawnBall();
-    if(effLevel()>=11&&!bossCount(level)&&!balls.some(b=>b.isMaster||b.isBoss)&&Math.random()<.0009*f)balls.push(new Ball(true));
+    levelT+=dt;if(effLevel()>=11&&!masterUsed&&levelT>15&&!bossCount(level)&&!balls.some(b=>b.isMaster||b.isBoss)&&Math.random()<.0005*f){masterUsed=true;balls.push(new Ball(true));} // at most one golden star per level
     if(Math.random()<.005*f)blocks.push(new Block());
     if(Math.random()<.009*f)rifts.push(new Rift());
     updatePUBar();
