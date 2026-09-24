@@ -1783,9 +1783,11 @@ function recStop(){
     mr.onstop=()=>{REC.blob=REC.chunks.length?new Blob(REC.chunks,{type:(REC.type||'video/webm').split(';')[0]}):null;if(REC.dest){try{SND.master.disconnect(REC.dest);}catch(e){}REC.dest=null;}res();};
     try{mr.stop();}catch(e){res();}});
 }
+let dlNS;async function dlCap(){if(dlNS!==undefined)return dlNS;try{dlNS=window.claude&&window.claude.use?await window.claude.use('downloads'):null;}catch(e){dlNS=null;}return dlNS;}
 async function shareClip(){
   if(!REC.blob)return;const ext=REC.blob.type.includes('mp4')?'mp4':'webm';const f=new File([REC.blob],`blackhole-storm-${SPR_RUN.res.score}.${ext}`,{type:REC.blob.type});
   try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],text:resultText(SPR_RUN.res,false)});return;}}catch(e){if(e&&e.name==='AbortError')return;}
+  const dl=await dlCap();if(dl){try{await dl.save({filename:f.name,data:REC.blob});}catch(e){}return;} // inside the claude.ai viewer: its confirmed save
   const a=document.createElement('a');a.href=URL.createObjectURL(f);a.download=f.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),5000);
 }
 
