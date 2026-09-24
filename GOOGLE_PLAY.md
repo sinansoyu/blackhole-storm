@@ -55,7 +55,7 @@ GitHub Pages'te bu dosya depoda `.well-known/assetlinks.json` yolunda durmalı; 
 
 ## 5. Görseller ve lisanslar
 
-**Astronot portreleri** (Eve Dönüş görevi) proje sahibinin sağladığı fotoğraflardan kırpıldı; NASA logosu ve bayrak bilerek kadraj dışında bırakıldı (NASA amblemi izinsiz kullanılamaz). Mağazaya göndermeden önce bu fotoğrafların kullanım hakkının sende olduğundan emin ol.
+**Astronot portreleri** (Eve Dönüş görevi) proje sahibinin Google Gemini (Nano Banana) ile ürettiği görsellerden kırpıldı. NASA logosu ve bayrak bilerek kadraj dışında bırakıldı (NASA amblemi izinsiz kullanılamaz). Görsellerin üretildiği tarihi ve kullanılan komutu (prompt) bir yerde sakla; bir hak sorusu gelirse kaynağı göstermek için yeterli olur.
 
 Oyundaki görseller CC BY 4.0 lisanslı (NASA/ESA/CSA Hubble ve Webb, Solar System Scope); sesler ve müzik CC0. CC BY 4.0 ticari kullanıma izin verir ama **kaynak belirtmek zorunludur**. Oyunda *Ayarlar → Emeği geçenler* bölümü bunu karşılıyor; mağaza açıklamasına da kısa bir satır eklemen iyi olur.
 
