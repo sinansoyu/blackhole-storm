@@ -6,10 +6,10 @@
 
   // id: 0 ruby, 1 emerald, 2 sapphire, 3 amethyst, 4 diamond, 5 seven, 6 crown, 7 wild, 8 scatter
   const DEFS = [
-    { key: 'ruby',     name: 'Yakut',    color: '#ff3355', pays: [5, 15, 60] },
-    { key: 'emerald',  name: 'Zümrüt',   color: '#22e07a', pays: [5, 15, 60] },
-    { key: 'sapphire', name: 'Safir',    color: '#3a8bff', pays: [7, 20, 75] },
-    { key: 'amethyst', name: 'Ametist',  color: '#b45cff', pays: [7, 20, 75] },
+    { key: 'ruby',     name: 'Yakut',    color: '#ff3355', pays: [4, 15, 60] },
+    { key: 'emerald',  name: 'Zümrüt',   color: '#22e07a', pays: [4, 15, 60] },
+    { key: 'sapphire', name: 'Safir',    color: '#3a8bff', pays: [6, 20, 75] },
+    { key: 'amethyst', name: 'Ametist',  color: '#b45cff', pays: [6, 20, 75] },
     { key: 'diamond',  name: 'Elmas',    color: '#bff6ff', pays: [10, 40, 150] },
     { key: 'seven',    name: 'Kırmızı 7', color: '#ff2a2a', pays: [15, 60, 250] },
     { key: 'crown',    name: 'Taç',      color: '#ffd36b', pays: [20, 80, 400] },

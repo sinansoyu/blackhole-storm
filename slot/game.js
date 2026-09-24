@@ -19,9 +19,9 @@
     [1, 1, 0, 1, 1], [1, 1, 2, 1, 1], [0, 0, 2, 0, 0], [2, 2, 0, 2, 2], [0, 2, 0, 2, 0],
   ];
   const LINE_COLORS = LINES.map((_, i) => `hsl(${(i * 47) % 360}, 100%, 62%)`);
-  const WEIGHTS = [18, 18, 16, 16, 11, 9, 7, 5, 2.5];
-  const WEIGHTS_FS = [18, 18, 16, 16, 11, 9, 7, 13, 2.5]; // more wilds during free spins
-  const BUY_X = 70; // bonus buy price (x bet); simulated bonus average ≈ 66x
+  const WEIGHTS = [18, 18, 16, 16, 11, 9, 7, 4.5, 4];
+  const WEIGHTS_FS = [18, 18, 16, 16, 11, 9, 7, 5.5, 2.5]; // more wilds during free spins
+  const BUY_X = 25; // bonus buy price (x bet); simulated bonus average ≈ 24.5x
   const BETS = [20, 40, 60, 100, 200, 400, 1000, 2000];
   const FS_AWARD = { 3: 10, 4: 12, 5: 15 };
   const SCAT_PAY = { 3: 2, 4: 5, 5: 20 };
