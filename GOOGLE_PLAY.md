@@ -49,7 +49,7 @@ GitHub Pages'te bu dosya depoda `.well-known/assetlinks.json` yolunda durmalı; 
    - Uygulama ikonu 512×512: `icons/icon-512.png`
    - Tanıtım görseli 1024×500 ve telefon ekran görüntüleri: `store/` klasöründe hazır: `feature-graphic-1024x500.jpg` ve 1080×1920 ekran görüntüleri
    - Kısa ve uzun açıklama (öneri aşağıda)
-   - **Gizlilik politikası** adresi (oyun kişisel veri toplamıyor; skorlar yalnızca cihazda saklanıyor; bunu belirten kısa bir sayfa yeterli)
+   - **Gizlilik politikası** adresi: depodaki `privacy.html` hazır (Türkçe + İngilizce). Yayınlandıktan sonra `https://<adresin>/privacy.html` adresini gir. Göndermeden önce sayfadaki `[İLETİŞİM E-POSTASI]` / `[CONTACT EMAIL]` yerine kendi iletişim e-postanı yaz.
    - İçerik derecelendirme anketi, hedef kitle ve **Veri güvenliği** formu (veri toplanmıyor / paylaşılmıyor)
 4. `app-release-bundle.aab` dosyasını önce **Kapalı test**, sonra **Üretim** kanalına yükle.
 
