@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<title>Cosmic Fortune</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Lilita+One&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<canvas id="bg"></canvas>
+
+<div id="app">
+  <header>
+    <h1 class="logo">COSMIC FORTUNE</h1>
+    <div class="demo-tag">DEMO · GERÇEK PARA YOK</div>
+  </header>
+
+  <div id="fsBar">
+    <div class="fs-chip">BEDAVA DÖNÜŞ <b id="fsLeft">10</b></div>
+    <div class="fs-chip mult" id="multChip">ÇARPAN <b id="fsMult">x1</b></div>
+    <div class="fs-chip">TOPLAM <b id="fsTotal">0</b></div>
+  </div>
+
+  <div class="frame" id="frame">
+    <canvas id="reels" width="820" height="500"></canvas>
+  </div>
+
+  <div id="msg">Bol şans! Döndürmek için SPIN'e bas.</div>
+
+  <div id="controls">
+    <div class="side left">
+      <div class="box"><div class="lbl">BAKİYE</div><div class="val" id="balVal">10.000</div></div>
+      <div class="box"><div class="lbl">KAZANÇ</div><div class="val" id="winVal">0</div></div>
+    </div>
+    <div class="center">
+      <button id="spinBtn" aria-label="Döndür">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/>
+        </svg>
+      </button>
+    </div>
+    <div class="side right">
+      <div class="bet-ctl">
+        <button class="round" id="betDown" aria-label="Bahsi azalt">−</button>
+        <div class="box" style="min-width:90px"><div class="lbl">BAHİS</div><div class="val" id="betVal">20</div></div>
+        <button class="round" id="betUp" aria-label="Bahsi artır">+</button>
+      </div>
+      <button class="pill" id="autoBtn">OTO</button>
+      <button class="pill" id="turboBtn">TURBO</button>
+      <button class="pill buy" id="buyBtn">BONUS AL</button>
+      <button class="pill" id="infoBtn">ⓘ</button>
+      <button class="pill" id="soundBtn">🔊</button>
+    </div>
+  </div>
+  <div class="hint">Boşluk tuşu = SPIN · 3+ BONUS sembolü = Çarpanlı Bedava Dönüş</div>
+</div>
+
+<!-- Big win -->
+<div class="overlay" id="bigWin">
+  <div class="bw-title" id="bwTitle">BÜYÜK KAZANÇ</div>
+  <div class="bw-amount" id="bwAmount">0</div>
+  <div class="bw-sub">devam etmek için dokun</div>
+</div>
+
+<!-- Free spins intro -->
+<div class="overlay" id="fsIntro">
+  <div class="fs-word">TEBRİKLER!</div>
+  <div class="fs-big" id="fsIntroN">10</div>
+  <div class="fs-word">BEDAVA DÖNÜŞ</div>
+  <div class="fs-info">Her kazançlı düşüşte (cascade) çarpan <b style="color:#7dffb0">+1</b> artar ve bonus boyunca <b style="color:#7dffb0">asla sıfırlanmaz!</b> 3+ BONUS = +5 dönüş.</div>
+  <button class="big-btn" id="fsStart">BAŞLA</button>
+</div>
+
+<!-- Free spins outro -->
+<div class="overlay" id="fsOutro">
+  <div class="fs-word">BONUS BİTTİ</div>
+  <div class="bw-amount" id="fsOutroWin">0</div>
+  <div class="fs-info" id="fsOutroInfo"></div>
+  <button class="big-btn" id="fsEnd">TOPLA</button>
+</div>
+
+<!-- Buy confirm -->
+<div class="overlay" id="buyModal">
+  <div class="fs-word">BONUS SATIN AL</div>
+  <div class="fs-info">10 Çarpanlı Bedava Dönüş (bahsin 70 katı)<br>Maliyet: <b id="buyCost" style="color:#ffd36b;font-size:28px">1.400</b></div>
+  <div>
+    <button class="big-btn" id="buyYes">SATIN AL</button>
+    <button class="big-btn" id="buyNo" style="background:linear-gradient(180deg,#bbb,#777);">İPTAL</button>
+  </div>
+</div>
+
+<!-- Paytable -->
+<div class="overlay" id="payModal">
+  <div class="modal">
+    <button class="close-x" id="payClose" aria-label="Kapat">×</button>
+    <h2>ÖDEME TABLOSU</h2>
+    <p>Kazançlar <b>satır bahsi</b> (toplam bahis ÷ 20) ile çarpılır. 20 sabit hat, soldan sağa ödenir.</p>
+    <div class="pt-grid" id="ptGrid"></div>
+    <h3>✦ CASCADE (DÜŞÜŞ)</h3>
+    <p>Kazanan semboller patlar, üstteki semboller aşağı düşer ve boşluklar yenileriyle dolar. Yeni kazanç oldukça zincir devam eder.</p>
+    <h3>✦ ÇARPANLI BEDAVA DÖNÜŞ</h3>
+    <ul>
+      <li>3 / 4 / 5 BONUS sembolü → 10 / 12 / 15 bedava dönüş (+ toplam bahsin 2x / 5x / 20x'i).</li>
+      <li>Çarpan x1'den başlar, her kazançlı cascade'de +1 artar ve bonus boyunca korunur.</li>
+      <li>Bonus sırasında 3+ BONUS → +5 dönüş.</li>
+      <li>Bonus sırasında makaralarda çok daha fazla WILD bulunur.</li>
+    </ul>
+    <h3>✦ WILD</h3>
+    <p>WILD, BONUS dışındaki tüm sembollerin yerine geçer. Sadece 2., 3. ve 4. makaralarda çıkar.</p>
+    <p style="opacity:.7">Simüle edilmiş teorik RTP ≈ %95. Bu oyun yalnızca eğlence amaçlı bir demodur. Gerçek para kullanılmaz, kazanılamaz.</p>
+  </div>
+</div>
+
+<canvas id="fx"></canvas>
+
+<script src="symbols.js"></script>
+<script src="audio.js"></script>
+<script src="game.js"></script>
+</body>
+</html>
