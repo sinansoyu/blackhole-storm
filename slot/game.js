@@ -19,9 +19,12 @@
     [1, 1, 0, 1, 1], [1, 1, 2, 1, 1], [0, 0, 2, 0, 0], [2, 2, 0, 2, 2], [0, 2, 0, 2, 0],
   ];
   const LINE_COLORS = LINES.map((_, i) => `hsl(${(i * 47) % 360}, 100%, 62%)`);
-  const WEIGHTS = [18, 18, 16, 16, 11, 9, 7, 4.5, 4];
-  const WEIGHTS_FS = [18, 18, 16, 16, 11, 9, 7, 5.5, 2.5]; // more wilds during free spins
-  const BUY_X = 25; // bonus buy price (x bet); simulated bonus average ≈ 24.5x
+  const WEIGHTS = [18, 18, 16, 16, 11, 9, 7, 5, 9]; // BONUS lands about once every 9 spins
+  const WEIGHTS_FS = [18, 18, 16, 16, 11, 9, 7, 7, 12]; // more wilds and frequent retriggers during free spins
+  const BUY_X = 100; // bonus buy price (x bet)
+  const MAX_MULT = 1024; // free-spin multiplier doubles per winning cascade up to this cap
+  const MAX_FS = 50; // most free spins a single bonus can award, retriggers included
+  const RETRIGGER = 5;
   const BETS = [20, 40, 60, 100, 200, 400, 1000, 2000];
   const FS_AWARD = { 3: 10, 4: 12, 5: 15 };
   const SCAT_PAY = { 3: 2, 4: 5, 5: 20 };
@@ -507,15 +510,21 @@
       if (counters.get(el) !== rec) return;
       const k = Math.min(1, (now - t0) / ms);
       rec.cur = from + (to - from) * (1 - Math.pow(1 - k, 3));
-      el.textContent = fmt(rec.cur);
+      setNum(el, rec.cur);
       el.dataset.v = rec.cur;
       if (k < 1) requestAnimationFrame(step); else counters.delete(el), (el.dataset.v = to);
     };
     requestAnimationFrame(step);
   }
+  // shrink long numbers so huge demo wins still fit their box
+  function setNum(el, v) {
+    const s = fmt(v);
+    el.textContent = s;
+    el.style.fontSize = s.length > 13 ? '13px' : s.length > 10 ? '16px' : '';
+  }
   function setBalance(v, anim = true) {
     state.balance = v;
-    if (anim) countTo($('balVal'), v); else { $('balVal').textContent = fmt(v); $('balVal').dataset.v = v; }
+    if (anim) countTo($('balVal'), v); else { setNum($('balVal'), v); $('balVal').dataset.v = v; }
   }
   function pop(el) { el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); }
   function updateUI() {
@@ -659,10 +668,13 @@
       chain++;
 
       if (fs) {
-        fs.mult++;
-        updateFsBar(); pop($('multChip'));
-        A.multUp(fs.mult);
-        floatText(`ÇARPAN x${fs.mult}`, W / 2, H / 2, '#7dffb0', 58, T(1100));
+        const prevMult = fs.mult;
+        fs.mult = Math.min(MAX_MULT, fs.mult * 2);
+        if (fs.mult !== prevMult) {
+          updateFsBar(); pop($('multChip'));
+          A.multUp(Math.log2(fs.mult) * 2);
+          floatText(fs.mult === MAX_MULT ? `MAKS ÇARPAN x${fs.mult}!` : `ÇARPAN x${fs.mult}`, W / 2, H / 2, '#7dffb0', 58, T(1100));
+        }
       }
       await wait(T(200));
     }
@@ -683,20 +695,27 @@
       A.fsTrigger();
       shake();
       if (fs) {
-        fs.left += 5;
-        msg('+5 BEDAVA DÖNÜŞ!');
-        floatText('+5 DÖNÜŞ', W / 2, H / 2, '#c9a2ff', 70, 1800);
+        const add = Math.max(0, Math.min(RETRIGGER, MAX_FS - fs.played - fs.left));
+        fs.left += add;
+        msg(add ? `+${add} BEDAVA DÖNÜŞ!` : `MAKSİMUM ${MAX_FS} DÖNÜŞE ULAŞILDI`);
+        floatText(add ? `+${add} DÖNÜŞ` : 'MAKS DÖNÜŞ', W / 2, H / 2, '#c9a2ff', 70, 1500);
       } else {
         fsCount = FS_AWARD[n];
         msg(`${n} BONUS! ${fsCount} BEDAVA DÖNÜŞ KAZANDIN!`);
       }
       updateFsBar();
-      await wait(1800);
+      await wait(fs ? T(1300) : 1800);
       scatCells.forEach(([c, r]) => { reels[c].cells[r].st = 'idle'; });
     }
 
     state.lastWin = spinWin;
-    if (spinWin > 0 && tierOf(spinWin / bet()) > 0) {
+    if (fs && tierOf(spinWin / bet()) > 0) {
+      const t = tierOf(spinWin / bet());
+      floatText(TIER_NAMES[t], W / 2, H / 2 - 40, ['', '#ffd36b', '#ff9ad5', '#9cf6ff'][t], 70, 1600);
+      floatText(fmt(spinWin), W / 2, H / 2 + 40, '#7dffb0', 60, 1600);
+      coinRain(12 * t); shake(); A.bigWin();
+      await wait(T(1200));
+    } else if (spinWin > 0 && tierOf(spinWin / bet()) > 0) {
       await showBigWin(spinWin);
     } else if (spinWin > 0) {
       const p = cellCenter(2, 1);
