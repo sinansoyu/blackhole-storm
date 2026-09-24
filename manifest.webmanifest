@@ -1,0 +1,19 @@
+{
+  "name": "Blackhole Storm",
+  "short_name": "Blackhole",
+  "description": "Kara delik dolaşıyor: gezegen halkaya girince dokun. Gerçek Hubble ve Webb gökyüzü, 5 bölge, günlük kozmos.",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "background_color": "#03040a",
+  "theme_color": "#03040a",
+  "lang": "tr",
+  "categories": ["games"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
 <title>Blackhole Storm</title>
+<meta name="theme-color" content="#03040a">
+<meta name="description" content="Kara delik dolaşıyor: gezegen halkaya girince dokun. Gerçek Hubble ve Webb gökyüzü, 5 bölge, günlük kozmos.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--gold:#f2c46d;--gold2:#ff9f43;--cyan:#3fd8e8;--red:#ff4d5e;--green:#3ee08f;--mint:#6effc8;--violet:#b9a7ff;--ink:#e9ecf5;--dim:#8a90a6;--glass:rgba(12,14,26,.72);--line:rgba(242,196,109,.28);--bg:#03040a;}
@@ -172,6 +178,16 @@ button{font-family:inherit;}
 .afact{min-height:70px;text-align:left;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);font-size:14px;line-height:1.45;color:#dfe3ee;margin-top:10px;}
 .afact b{color:var(--gold);display:block;font-family:'Orbitron',monospace;font-size:11px;letter-spacing:1px;margin-bottom:3px;}
 .near{font-family:'Orbitron',monospace;font-size:12px;letter-spacing:1px;color:var(--gold);margin-top:2px;}
+/* daily cosmos, sprint result, challenge */
+.daily{text-align:left;padding:12px 12px 10px;border-radius:16px;background:linear-gradient(135deg,rgba(63,216,232,.12),rgba(185,167,255,.1));border:1px solid rgba(63,216,232,.35);margin:12px 0 4px;}
+.daily .t{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-family:'Orbitron',monospace;font-size:11px;letter-spacing:1px;color:var(--cyan);}
+.daily .t b{font-size:10px;color:#cbbcff;letter-spacing:1px;}
+.daily .s{font-size:13.5px;color:#dfe3ee;margin-top:5px;line-height:1.4;}
+.daily .g{font-size:18px;letter-spacing:1px;margin-top:4px;}
+.daily .row{justify-content:flex-start;}
+.grid{font-size:22px;letter-spacing:2px;margin:8px 0;}
+.verdict{font-family:'Orbitron',monospace;font-size:13px;letter-spacing:1px;margin:6px 0;}
+#sprintBtns .btn{flex:1 1 45%;}
 @keyframes pulseO{from{opacity:1}to{opacity:.45}}
 @keyframes tmrShake{from{transform:translateX(-1.5px) scale(1.05)}to{transform:translateX(1.5px) scale(1.12)}}
 @keyframes perfPop{0%{transform:translate(-50%,-50%) scale(0);opacity:1}35%{transform:translate(-50%,-50%) scale(1.15)}100%{transform:translate(-50%,-50%) scale(.95);opacity:0}}
@@ -206,9 +222,11 @@ button{font-family:inherit;}
 
   <div class="modal card" id="mCont">
    <div class="h">CANIN TÜKENDİ</div>
-   <p class="muted">Kaldığın yerden devam etmek ister misin?</p>
-   <div class="box"><div style="font-family:'Orbitron',monospace;color:var(--gold);font-size:17px;">100 ⭐ KULLAN</div><div class="muted">Mevcut: <span id="contStars">0</span> ⭐</div></div>
-   <div class="row"><button class="btn" id="contYes">DEVAM ET</button><button class="btn sec" id="contNo">BİTİR</button></div>
+   <p class="muted" id="contMsg" style="font-size:14.5px;color:#dfe3ee;">Kaldığın yerden devam etmek ister misin?</p>
+   <div class="box"><div style="font-family:'Orbitron',monospace;color:var(--gold);font-size:16px;">100 ⭐ İLE DEVAM</div><div class="muted">Puanın korunur, 3 can · Mevcut: <span id="contStars">0</span> ⭐</div></div>
+   <div class="row"><button class="btn big" id="contYes">DEVAM ET · 100 ⭐</button></div>
+   <div class="row"><button class="btn sec" id="contRetry" style="width:100%;">🔄 SEVİYEYİ ÜCRETSİZ YENİDEN OYNA</button></div>
+   <div class="row"><button class="btn sec" id="contNo" style="width:100%;">BİTİR</button></div>
   </div>
   <div class="modal card" id="mNoStar">
    <div class="h">YILDIZ YETERSİZ</div><p class="muted">Devam etmek için 100 ⭐ gerekiyor.</p>
@@ -231,6 +249,18 @@ button{font-family:inherit;}
    </div>
    <div class="box" style="background:rgba(63,216,232,.06);border-color:rgba(63,216,232,.3);font-size:13.5px;color:#b9c7d6;">3 mekik · her kurtarma <b style="color:var(--gold)">+20 ⭐</b>, üçü birden <b style="color:var(--gold)">+20 ⭐ bonus</b><br>İstasyonun merkezine yanaştır: daha çok puan. Can gitmez.</div>
    <div class="row"><button class="btn big cy" id="rescueGo">GÖREVE BAŞLA</button></div>
+  </div>
+ <div class="modal card" id="mSprint" style="border-color:rgba(63,216,232,.45);">
+   <div class="h" id="spHead" style="color:var(--cyan);">GÜNLÜK KOZMOS</div>
+   <div class="muted" id="spZone" style="font-family:'Orbitron',monospace;font-size:10px;letter-spacing:1px;"></div>
+   <div class="big-num" id="spScore" style="font-size:44px;">0</div>
+   <div class="verdict" id="spVerdict"></div>
+   <div class="grid" id="spGrid"></div>
+   <div class="muted" id="spStats"></div>
+   <div class="row" id="sprintBtns"><button class="btn" id="spShare">📤 PAYLAŞ</button><button class="btn cy" id="spChal">⚔️ MEYDAN OKU</button></div>
+   <div class="row"><button class="btn sec" id="spClip" style="display:none;width:100%;">🎬 KLİBİ KAYDET / PAYLAŞ</button></div>
+   <div class="row"><button class="btn sec" id="spAgain">🔁 TEKRAR</button><button class="btn sec" id="spMenu">ANA MENÜ</button></div>
+   <div class="muted" id="spNote" style="font-size:12px;margin-top:8px;"></div>
   </div>
   <div class="modal card" id="mZone" style="border-color:rgba(185,167,255,.45);">
    <div class="h" id="zKind" style="color:#cbbcff;">BÖLGE 1</div>
@@ -287,6 +317,12 @@ button{font-family:inherit;}
   <div class="wallet"><span>⭐ <b id="menuStars">0</b></span><span>💎 <b id="menuDia">0</b></span></div>
   <div class="evo" id="evoBox"></div>
   <div class="banner" id="contBanner"><div class="t">KAYITLI İLERLEME</div><div class="s" id="contText"></div></div>
+  <div class="daily" id="dailyCard">
+   <div class="t"><span id="dcTitle">📅 GÜNLÜK KOZMOS</span><b id="dcZone"></b></div>
+   <div class="s" id="dcTxt">Bugün herkes aynı evrende 60 saniye oynuyor. Tek resmi deneme!</div>
+   <div class="g" id="dcGrid"></div>
+   <div class="row"><button class="btn cy" id="dcPlay">OYNA · 60 SN</button><button class="btn sec" id="dcShare" style="display:none">📤 PAYLAŞ</button></div>
+  </div>
   <div class="modes">
    <button class="mode on" id="modeC"><b>🪐</b>KLASİK<small>Seviye seviye ilerle</small></button>
    <button class="mode" id="modeS"><b>☠️</b>HAYATTA KAL<small>Rekor kovala</small></button>
@@ -300,7 +336,7 @@ button{font-family:inherit;}
   <div class="tip"><canvas width="68" height="68" data-kind="ship"></canvas><div><b style="color:var(--cyan)">SAPAN KURTARMA</b>Her 5 seviyede: mekiği doğru anda fırlat.</div></div>
   <div class="tip"><canvas width="68" height="68" data-kind="boss"></canvas><div><b style="color:var(--red)">KIZIL DEV</b>Her 20 seviyede bir boss seni bekliyor.</div></div>
   <div class="box" id="dailyPrev" style="display:none;"></div>
-  <div class="row"><button class="btn sec" id="lbBtn">🏆 Lider tablosu</button><button class="btn sec" id="atlasBtn">📖 Atlas</button><button class="btn sec" id="setBtn">⚙️ Ayarlar</button><button class="btn sec" id="editProf">✏️ Profil</button></div>
+  <div class="row"><button class="btn sec" id="lbBtn">🏆 Lider tablosu</button><button class="btn sec" id="atlasBtn">📖 Atlas</button><button class="btn sec" id="setBtn">⚙️ Ayarlar</button><button class="btn sec" id="editProf">✏️ Profil</button><button class="btn sec" id="installBtn" style="display:none">📲 Ana ekrana ekle</button></div>
   <div class="foot">Görseller: NASA/ESA/CSA Hubble ve Webb, Solar System Scope (CC BY 4.0) · Ses: Kenney.nl, OpenGameArt (CC0)</div>
  </div>
 </div>
@@ -339,6 +375,19 @@ button{font-family:inherit;}
  </div>
 </div>
 
+<!-- CHALLENGE (opened from a shared link) -->
+<div class="screen" id="sChal" style="z-index:125;">
+ <div class="card" style="max-width:360px;">
+  <div class="h" style="color:#ff8a8a;">⚔️ MEYDAN OKUMA</div>
+  <div style="font-size:42px;" id="chAv">🛸</div>
+  <div class="logo" id="chName" style="font-size:20px;"></div>
+  <p class="muted" id="chTxt" style="font-size:14.5px;color:#dfe3ee;"></p>
+  <div class="big-num" id="chScore" style="font-size:40px;"></div>
+  <div class="row"><button class="btn big" id="chGo">KABUL ET · 60 SN</button></div>
+  <div class="row"><button class="btn sec" id="chNo">Sonra</button></div>
+ </div>
+</div>
+
 <!-- PAUSE -->
 <div class="screen" id="sPause" style="z-index:110;">
  <div class="card" style="max-width:340px;">
@@ -348,7 +397,7 @@ button{font-family:inherit;}
   <button class="popt" id="pSfx">🔊 Efekt sesleri <em id="pSfxL">AÇIK</em></button>
   <button class="popt" id="pSet">⚙️ Diğer ayarlar</button>
   <button class="popt" id="pLB">🏆 Lider tablosu</button>
-  <button class="popt" id="pRestart">🔄 Baştan başla</button>
+  <button class="popt" id="pRestart">🔄 <span id="pRestartL">Seviyeyi yeniden başlat</span></button>
   <button class="popt" id="pMenu">🏠 Ana menü</button>
  </div>
 </div>
@@ -362,6 +411,7 @@ button{font-family:inherit;}
   <div class="srow"><span>🔊 Efekt sesleri</span><button class="tg" id="sSfx"></button></div>
   <div class="srow vol"><input type="range" id="sSfxV" min="0" max="1" step="0.05" aria-label="Efekt ses seviyesi"></div>
   <div class="srow"><span>📳 Titreşim</span><button class="tg" id="sVib"></button></div>
+  <div class="srow"><span>🎬 60 sn koşuları kaydet</span><button class="tg" id="sRec"></button></div>
   <div class="srow"><span>💎 Elmas butonu</span><div class="seg"><button id="sBtnL">SOL</button><button id="sBtnR">SAĞ</button></div></div>
   <div class="credits"><b>Emeği geçenler</b><br>
    Bölge fotoğrafları (CC BY 4.0): Hubble Ultra Derin Alan — NASA, ESA, S. Beckwith (STScI), HUDF Team · Westerlund 2 — NASA, ESA, Hubble Heritage Team (STScI/AURA), A. Nota, Westerlund 2 Science Team · Orion — NASA, ESA, M. Robberto, HST Orion Treasury Team · Karina — NASA, ESA, N. Smith, Hubble Heritage Team · Kozmik Uçurumlar — NASA, ESA, CSA, STScI (Webb)<br>
@@ -433,6 +483,11 @@ mMenu:"//OAxAAAAAAAAAAAAFhpbmcAAAAPAAAJlAAEP6gAAwYICg0PEhQXGRweISMmKSwvMTQ2OTs+Q
 'use strict';
 const $=id=>document.getElementById(id);
 const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+// Sprint runs (Daily Cosmos, challenges) draw spawns and the hole's path from a seeded generator,
+// so everyone playing the same seed faces the same sequence of bodies.
+function mulberry(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+let rngS=null;function rng(){return rngS?rngS():Math.random();}
+const rrnd=(a,b)=>a+rng()*(b-a),rpick=a=>a[Math.floor(rng()*a.length)];
 const rnd=(a,b)=>a+Math.random()*(b-a);
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 const TAU=Math.PI*2;
@@ -444,15 +499,15 @@ const SK='bhs_v7';
 let stars=250,diamonds=50,bestScore=0,totalGames=0,totalCombos=0;
 let lastLogin='',loginStreak=0,localLB=[],unlockedAch=new Set(),achQueue=[];
 let rescueWins=0,playerName='',playerAvatar='🚀',savedLevel=1,savedScore=0;
-const SET={music:true,musicVol:.6,sfx:true,sfxVol:.9,vib:true,left:false};
-let mass=0,swallowed=0,bestLevel=1,seen={},DM={date:'',list:[],bonus:false};
-function saveG(){try{localStorage.setItem(SK,JSON.stringify({stars,diamonds,bestScore,totalGames,totalCombos,ach:[...unlockedAch],lb:localLB,lastLogin,loginStreak,rescueWins,playerName,playerAvatar,savedLevel,savedScore,set:SET,mass,swallowed,bestLevel,seen,dm:DM}));}catch(e){}}
+const SET={music:true,musicVol:.6,sfx:true,sfxVol:.9,vib:true,left:false,rec:true};
+let mass=0,swallowed=0,bestLevel=1,seen={},DM={date:'',list:[],bonus:false},DAILY={n:0,score:0,grid:'',combo:0,perf:0},sprintBest=0;
+function saveG(){try{localStorage.setItem(SK,JSON.stringify({stars,diamonds,bestScore,totalGames,totalCombos,ach:[...unlockedAch],lb:localLB,lastLogin,loginStreak,rescueWins,playerName,playerAvatar,savedLevel,savedScore,set:SET,mass,swallowed,bestLevel,seen,dm:DM,daily:DAILY,sprintBest}));}catch(e){}}
 function loadG(){try{const d=JSON.parse(localStorage.getItem(SK)||'{}');
   stars=d.stars??250;diamonds=d.diamonds??50;bestScore=d.bestScore??0;totalGames=d.totalGames??0;totalCombos=d.totalCombos??0;
   unlockedAch=new Set(d.ach||[]);localLB=d.lb||[];lastLogin=d.lastLogin||'';loginStreak=d.loginStreak??0;
   rescueWins=d.rescueWins??0;playerName=d.playerName||'';playerAvatar=d.playerAvatar||'🚀';savedLevel=d.savedLevel??1;savedScore=d.savedScore??0;
   if(d.set)Object.assign(SET,d.set);else if(d.soundOn===false){SET.music=false;SET.sfx=false;}
-  mass=d.mass??0;swallowed=d.swallowed??0;bestLevel=d.bestLevel??Math.max(1,d.savedLevel??1);seen=d.seen||{};if(d.dm&&d.dm.list)DM=d.dm;
+  mass=d.mass??0;swallowed=d.swallowed??0;bestLevel=d.bestLevel??Math.max(1,d.savedLevel??1);seen=d.seen||{};if(d.dm&&d.dm.list)DM=d.dm;if(d.daily)DAILY=d.daily;sprintBest=d.sprintBest??0;
 }catch(e){}}
 function vib(p){if(SET.vib&&navigator.vibrate)try{navigator.vibrate(p);}catch(e){}}
 
@@ -783,7 +838,7 @@ function setZone(z){
   const apply=img=>{if(!img||curZone!==z)return;IMG.bg=img;if(GL.ready)glSetBg(img);};
   if(IMG.bgs[z])apply(IMG.bgs[z]);else loadImg(src).then(img=>{IMG.bgs[z]=img;apply(img);});
 }
-function zonePlanetCell(){const pool=(ZONES[Math.max(0,curZone)]||{}).pool||PCELLS;return pick(pool);}
+function zonePlanetCell(){const pool=(ZONES[Math.max(0,curZone)]||{}).pool||PCELLS;return rpick(pool);}
 
 // ══════════════════════════════════════════════════════
 // STATE
@@ -813,9 +868,9 @@ let saveTimer=0;function saveSoon(){clearTimeout(saveTimer);saveTimer=setTimeout
 function later(fn,ms){const id=runId;setTimeout(()=>{if(id===runId)fn();},ms);}
 const PU_COL={slow:'#7cc6ff',bomb:'#ff5a3c',magnet:'#c07bff',mult:'#5dfb9b'};
 function levelTarget(l){return l<=3?90+60*l:Math.min(950,330+(l-4)*55);} // 150, 210, 270, then +55 per level
-function pullK(){return gameMode==='survival'?.004:level<=3?.018:level<=6?.011:level<=12?.006:level<=20?.004:.0025;}
+function pullK(){return gameMode==='sprint'?.008:gameMode==='survival'?.004:level<=3?.018:level<=6?.011:level<=12?.006:level<=20?.004:.0025;}
 function earlyBoost(){return gameMode==='classic'?Math.max(1,1.7-(level-1)*.14):1;} // denser traffic in the first levels
-function effLevel(){return gameMode==='survival'?Math.floor(survTime/30)+1:level;}
+function effLevel(){return gameMode==='survival'?Math.floor(survTime/30)+1:level;} // sprint runs set `level` to their fixed difficulty
 function bossActive(){return balls.some(b=>b.isBoss&&!b.suck);}
 function physicsOn(){return gState==='playing'||gState==='pen_blink'||gState==='rescue_play';}
 
@@ -992,7 +1047,7 @@ function updateHole(dt){
   hWanderT+=dt;hWpTimer+=dt;
   const lv=effLevel();let spd=.6+Math.min(lv*.04,.8);if(lv%8===0)spd*=2;
   const wi=Math.max(1.8,WP_INT-lv*.06);
-  if(hWpTimer>wi){hWpTimer=0;const mg=100;hBaseX=mg+Math.random()*Math.max(1,W-mg*2);hBaseY=mg+Math.random()*Math.max(1,H-mg*2);hAmp.x=60+Math.random()*W*.18;hAmp.y=40+Math.random()*H*.15;}
+  if(hWpTimer>wi){hWpTimer=0;const mg=100;hBaseX=mg+rng()*Math.max(1,W-mg*2);hBaseY=mg+rng()*Math.max(1,H-mg*2);hAmp.x=60+rng()*W*.18;hAmp.y=40+rng()*H*.15;}
   const tx=clamp(hBaseX+Math.sin(hWanderT*spd)*hAmp.x,80,W-80),ty=clamp(hBaseY+Math.cos(hWanderT*spd*.7)*hAmp.y,80,H-80);
   const k=1-Math.pow(.92,dt*60);hX+=(tx-hX)*k;hY+=(ty-hY)*k;
 }
@@ -1001,7 +1056,7 @@ function updateHole(dt){
 // 20-SECOND INACTIVITY RULE (the timer chip only appears in the last 10 s)
 // ══════════════════════════════════════════════════════
 function updateInact(){
-  if(gState!=='playing'&&gState!=='pen_blink')return;
+  if((gState!=='playing'&&gState!=='pen_blink')||gameMode==='sprint')return;
   const el=(performance.now()-lastTap)/1000,rem=Math.max(0,INACT-el);
   const tp=$('tmrPill');$('tmrVal').textContent=Math.ceil(rem);
   const sec=Math.floor(el);
@@ -1021,20 +1076,20 @@ function giveSpin(b){ // each body spins on its own tilted axis; some tumble irr
 }
 class Ball{
   constructor(isMaster=false,forceType=null,opt={}){
-    const eff=effLevel();this.isMaster=isMaster;this.rot=Math.random()*TAU;this.spin=rnd(-.7,.7);this.sX=1;this.sY=1;this.suck=null;this.age=0;giveSpin(this);
+    const eff=effLevel();this.isMaster=isMaster;this.rot=rng()*TAU;this.spin=rrnd(-.7,.7);this.sX=1;this.sY=1;this.suck=null;this.age=0;giveSpin(this);
     if(forceType==='boss'){
       this.isBoss=true;this.bossHP=5+Math.floor(eff/10);this.maxHP=this.bossHP;this.r=30;this.sprite=SPR.boss;this.cell=12;this.color='#ff6a3d';this.spinV=.25;this.wobA=.05;
-      this.x=clamp(hX+rnd(-60,60),60,W-60);this.y=clamp(hY-130,60,H-60);this.vx=rnd(-.5,.5);this.vy=.5;this.hitFlash=0;return;
+      this.x=clamp(hX+rrnd(-60,60),60,W-60);this.y=clamp(hY-130,60,H-60);this.vx=rrnd(-.5,.5);this.vy=.5;this.hitFlash=0;return;
     }
     let kind=forceType;
     if(!kind&&!isMaster&&!opt.plain){
-      if(eff>=3&&Math.random()<.11)kind='pu';
-      else{const r=Math.random();let acc=0;
+      if(eff>=3&&rng()<.11)kind='pu';
+      else{const r=rng();let acc=0;
         for(const [k,lv,pr] of SPECIAL_ODDS){if(eff<lv)continue;if((k==='anti'||k==='dark')&&countKind(k)>=2)continue;acc+=pr;if(r<acc){kind=k;break;}}}
     }
     if(kind==='pu'){
       const t=['slow'];if(eff>=7&&bombsInLevel<2)t.push('bomb');if(eff>=12)t.push('magnet');if(eff>=18)t.push('mult');
-      this.ptype=pick(t);this.r=12;this.color=PU_COL[this.ptype];if(this.ptype==='bomb')bombsInLevel++;
+      this.ptype=rpick(t);this.r=12;this.color=PU_COL[this.ptype];if(this.ptype==='bomb')bombsInLevel++;
     }else if(kind==='comet'){this.kind='comet';this.r=6;this.color='#bfe9ff';}
     else if(kind==='pulsar'){this.kind='pulsar';this.r=7;this.color='#cfe6ff';}
     else if(kind==='anti'){this.kind='anti';this.r=9;this.color='#d05cff';}
@@ -1042,29 +1097,29 @@ class Ball{
     else if(kind==='dark'){this.kind='dark';this.r=12;this.color='#8f9bff';}
     else if(kind==='moonChild'){this.kind='moon';this.r=4.5;this.cell=8;this.sprite=SPR.byCell[8]||null;this.color='#bbb';this.armor=0;}
     else{
-      this.isGhost=!isMaster&&!kind&&eff>=9&&Math.random()<.1;
-      this.armor=(!isMaster&&eff>=16&&Math.random()<.25)?1:0;this.armorBroken=false;
+      this.isGhost=!isMaster&&!kind&&eff>=9&&rng()<.1;
+      this.armor=(!isMaster&&eff>=16&&rng()<.25)?1:0;this.armorBroken=false;
       if(isMaster){this.r=7;this.color='#ffd76a';}
       else if(this.isGhost){this.r=12;this.sprite=SPR.ghost;this.color='#b9a7ff';}
-      else{this.r=rnd(9,12);this.cell=zonePlanetCell();this.sprite=SPR.byCell[this.cell]||null;if(!this.sprite)this.cell=undefined;this.color=this.sprite?this.sprite._tint:'#99a';
-        if(kind==='split'){this.kind='split';this.r=rnd(11,13);this.armor=0;}
-        else if(kind==='moon'){this.kind='moonP';this.r=rnd(10.5,12.5);this.armor=0;}}
+      else{this.r=rrnd(9,12);this.cell=zonePlanetCell();this.sprite=SPR.byCell[this.cell]||null;if(!this.sprite)this.cell=undefined;this.color=this.sprite?this.sprite._tint:'#99a';
+        if(kind==='split'){this.kind='split';this.r=rrnd(11,13);this.armor=0;}
+        else if(kind==='moon'){this.kind='moonP';this.r=rrnd(10.5,12.5);this.armor=0;}}
     }
     const early=gameMode==='classic'?Math.max(0,4-level):0,free=!isMaster&&!forceType;
-    const inside=free&&(opt.near||opt.inside||Math.random()<(early?.25+early*.1:.1));
+    const inside=free&&(opt.near||opt.inside||rng()<(early?.25+early*.1:.1));
     this.gs=inside?0:1;
-    if(opt.near){const a=rnd(0,TAU),d=rnd(105,135);this.x=clamp(hX+Math.cos(a)*d,24,W-24);this.y=clamp(hY+Math.sin(a)*d,24,H-24);}
-    else if(inside){let tries=0;do{this.x=rnd(30,W-30);this.y=rnd(30,H-30);}while((Math.hypot(this.x-hX,this.y-hY)<curR*3.5||(early&&Math.hypot(this.x-hX,this.y-hY)>230))&&++tries<30);}
-    else{const sd=Math.floor(Math.random()*4);
-      if(sd===0){this.x=Math.random()*W;this.y=-30;}else if(sd===1){this.x=W+30;this.y=Math.random()*H;}else if(sd===2){this.x=Math.random()*W;this.y=H+30;}else{this.x=-30;this.y=Math.random()*H;}}
+    if(opt.near){const a=rrnd(0,TAU),d=rrnd(105,135);this.x=clamp(hX+Math.cos(a)*d,24,W-24);this.y=clamp(hY+Math.sin(a)*d,24,H-24);}
+    else if(inside){let tries=0;do{this.x=rrnd(30,W-30);this.y=rrnd(30,H-30);}while((Math.hypot(this.x-hX,this.y-hY)<curR*3.5||(early&&Math.hypot(this.x-hX,this.y-hY)>230))&&++tries<30);}
+    else{const sd=Math.floor(rng()*4);
+      if(sd===0){this.x=rng()*W;this.y=-30;}else if(sd===1){this.x=W+30;this.y=rng()*H;}else if(sd===2){this.x=rng()*W;this.y=H+30;}else{this.x=-30;this.y=rng()*H;}}
     const aimP=opt.near?1:gameMode==='survival'?.3:level<=3?.65:level<=6?.45:.3;
-    const ang=free&&Math.random()<aimP?Math.atan2(hY+rnd(-30,30)-this.y,hX+rnd(-30,30)-this.x):Math.atan2(rnd(H*.15,H*.85)-this.y,rnd(W*.15,W*.85)-this.x);
+    const ang=free&&rng()<aimP?Math.atan2(hY+rrnd(-30,30)-this.y,hX+rrnd(-30,30)-this.x):Math.atan2(rrnd(H*.15,H*.85)-this.y,rrnd(W*.15,W*.85)-this.x);
     const base=gameMode==='survival'?1.15+survSpeed:.62+level*.07;
     let spd=isMaster?16:Math.min(base*(this.ptype==='bomb'?1.1:this.isGhost?1.08:1),3.6);
     if(opt.near)spd=Math.max(spd,1.05);
     if(this.kind==='comet')spd=clamp(base*2.2,2.4,5.2);else if(this.kind==='dark'||this.kind==='anti')spd*=.85;
     this.vx=Math.cos(ang)*spd;this.vy=Math.sin(ang)*spd;this.vmax=Math.max(spd*1.9,1.6);
-    if(this.kind==='moonP'){const m=new Ball(false,'moonChild');m.parent=this;m.oa=rnd(0,TAU);m.ow=rnd(1.8,2.8)*(Math.random()<.5?1:-1);m.orR=this.r+9;m.x=this.x;m.y=this.y;this.child=m;}
+    if(this.kind==='moonP'){const m=new Ball(false,'moonChild');m.parent=this;m.oa=rrnd(0,TAU);m.ow=rrnd(1.8,2.8)*(rng()<.5?1:-1);m.orR=this.r+9;m.x=this.x;m.y=this.y;this.child=m;}
   }
   startSuck(){const dx=this.x-hX,dy=this.y-hY;this.suck={t:0,ph:'pop',a0:Math.atan2(dy,dx),r0:Math.max(6,Math.hypot(dx,dy)),dir:Math.random()<.5?1:-1,br:this.r};}
   spinStep(dt,k){this.spinA+=this.spinV*(1+.35*Math.sin(this.age*this.irrF+this.ph))*dt*k;}
@@ -1400,7 +1455,7 @@ function drawRescue(){
 // ══════════════════════════════════════════════════════
 // CORE GAME LOGIC
 // ══════════════════════════════════════════════════════
-const MODALS=['mCont','mNoStar','mIntro','mRescue','mZone','mLvl','mOver'];
+const MODALS=['mCont','mNoStar','mIntro','mRescue','mSprint','mZone','mLvl','mOver'];
 function hideModals(){MODALS.forEach(id=>$(id).classList.remove('on'));}
 function showModal(id){hideModals();$(id).classList.add('on');}
 function showBig(html,ms){const b=$('bigtxt');b.innerHTML=html;b.style.opacity='1';b.style.transform='translate(-50%,-50%) scale(1)';setTimeout(()=>{b.style.opacity='0';b.style.transform='translate(-50%,-50%) scale(.6)';},ms);}
@@ -1490,7 +1545,7 @@ function handleShot(){
   }
   if(cap.armor>0){cap.armor--;cap.armorBroken=true;discover('armor');sfx('armor',{vol:.8,x:cap.x});shake=5;vib(20);cap.spinV*=2.5;for(let i=0;i<18;i++)shards.push(new Shard(cap.x,cap.y,'rgba(150,220,255,.9)'));addFT('KALKAN KIRILDI',cap.x,cap.y-22,'#8fe9ff',13);return;}
   cap.startSuck();comboCount++;if(comboCount>maxCombo)maxCombo=comboCount;totalCombos++;updateCombo();
-  let pts=0;
+  let pts=0,wasPerf=false;
   addMass(MASS[cap.kind]||(cap.isGhost?MASS.ghost:1));dmEvent('catch',1);dmEvent('combo',comboCount,true);
   discover(cap.isMaster?'master':cap.isGhost?'ghost':cap.kind==='moon'?'c8':cap.kind&&!['split','moonP','frag'].includes(cap.kind)?cap.kind:'c'+cap.cell);
   if(cap.isMaster){pts=levelTarget(level);levelScore=Math.max(levelScore,pts);lives++;sfx('master',{vol:.8,rev:.35});flash=.9;vib([20,40,20]);addFT('ALTIN YILDIZ! +1 CAN',hX,hY-curR-30,'#ffd76a',18);}
@@ -1498,7 +1553,7 @@ function handleShot(){
     let ratio=1-bd/(curR+cap.r+4);
     const rate=Math.min(1.55,.92+comboCount*.035);
     let edge=0;
-    if(ratio>.84){perfectCount++;dmEvent('perfect',1);showPerf();slowMo=.22;shake=7;ratio=1.2;vib([12,40,12]);sfx('bell',{vol:.7,rate:1.25,x:cap.x,rev:.35});sfx('sparkle',{vol:.45,x:cap.x,rev:.3});}
+    if(ratio>.84){wasPerf=true;perfectCount++;dmEvent('perfect',1);showPerf();slowMo=.22;shake=7;ratio=1.2;vib([12,40,12]);sfx('bell',{vol:.7,rate:1.25,x:cap.x,rev:.35});sfx('sparkle',{vol:.45,x:cap.x,rev:.3});}
     else if(ratio<.12){edge=10;dmEvent('edge',1);vib([8,30,8]);sfx('sparkle',{vol:.4,rate:1.4,x:cap.x});addFT('KIL PAYI!',cap.x,cap.y-30,'#8fe9ff',13);}
     else vib(8);
     sfx(Math.random()<.5?'capture':'capture2',{vol:.75,rate,x:cap.x,rev:.22});
@@ -1510,7 +1565,7 @@ function handleShot(){
     if(cap.kind==='neutron'){neutT=6;addFT('HALKA BÜYÜDÜ',hX,hY-curR-40,'#dff1ff',15);sfx('magnet',{vol:.4,rate:1.6});}
     levelScore+=pts;if(gameMode==='survival')survScore+=pts;
   }
-  totalScore+=pts;ringPulse=1;
+  totalScore+=pts;ringPulse=1;if(gameMode==='sprint'){const bk=SPR_RUN.blocks[Math.min(9,Math.floor(SPR_RUN.t/6))];bk.c++;if(wasPerf)bk.p++;SPR_RUN.caught++;}
   addFT('+'+pts,cap.x,cap.y-8,cap.isMaster?'#ffd76a':pts>=18?'#7dffb3':'#ffffff',pts>=18?22:18);
   updateUI();checkAchs();dmEvent('score',totalScore,true);
   if(levelDone())later(()=>levelSuccess(),300);
@@ -1556,7 +1611,7 @@ function loseLife(icon,msg,snd){
   if(msg)addFT(msg,hX,hY-curR-40,'#ff4d5e',20);
   vib([100,50,100]);
   later(()=>{m.style.display='none';
-    if(lives<=0){gState='over';$('contStars').textContent=stars;showModal('mCont');SND.setDrone(.08,300);SND.duck(.35,2);}
+    if(lives<=0){gState='over';SND.setDrone(.08,300);SND.duck(.35,2);if(gameMode==='sprint'){sprintEnd();return;}showCont();}
     else{gState='pen_blink';later(()=>{if(gState!=='pen_blink')return;gState='playing';lastT=performance.now();resetInact();},1000);}},1800);
 }
 function penalty(){if(gState==='playing')loseLife('-1','ISKA!','miss');}
@@ -1574,6 +1629,13 @@ function levelSuccess(){
   $('lvlHead').textContent='SEVİYE TAMAMLANDI';$('lvlNum').textContent=level;$('lvlMsg').textContent=`${totalScore.toLocaleString('tr-TR')} toplam puan · +5 ⭐${level%5===0?' +3 💎':''}${lifeUp?' · +1 can':''}`;
   later(()=>{showModal('mLvl');gState='menu';updateUI();},2900);checkAchs();
 }
+// Classic never throws you back to level 1: out of lives you can pay to continue, replay the level for free, or leave with progress saved.
+function showCont(){
+  const cl=gameMode==='classic';$('contStars').textContent=stars;
+  $('contMsg').textContent=cl?`Seviye ${level}'de canların bitti. İlerlemen kayıtlı: baştan başlamazsın.`:'Kaldığın yerden devam etmek ister misin?';
+  $('contRetry').style.display=cl?'':'none';$('contNo').textContent=cl?'ANA MENÜ (İLERLEME KAYITLI)':'BİTİR';showModal('mCont');
+}
+function retryLevel(){hideModals();SND.duck(1,0);SND.setDrone(.14,650);addLB(totalScore);if(totalScore>bestScore)bestScore=totalScore;saveG();resetRun(false);}
 function gameOver(){
   dmEvent('score',totalScore,true);
   $('finNear').textContent=totalScore>runStartBest&&totalScore>0?'🏆 YENİ REKOR!':runStartBest>0?`Rekoruna ${(runStartBest-totalScore).toLocaleString('tr-TR')} puan kaldı`:'';
@@ -1584,13 +1646,13 @@ function gameOver(){
 }
 function updateUI(){
   $('scVal').textContent=totalScore.toLocaleString('tr-TR');
-  $('lvLbl').textContent=isRescueLevel?'GÖREV':gameMode==='survival'?'HIZ':'SEVİYE';
-  $('lvVal').textContent=isRescueLevel?'🛰️':gameMode==='survival'?effLevel():level;
-  $('scSub').textContent=isRescueLevel?`KURTARILAN ${rSaved} / ${RESCUE_SHIPS}`:gameMode==='survival'?`REKOR ${bestScore.toLocaleString('tr-TR')}`:`HEDEF ${Math.min(levelScore,levelTarget(level))} / ${levelTarget(level)}`;
+  $('lvLbl').textContent=isRescueLevel?'GÖREV':gameMode==='survival'?'HIZ':gameMode==='sprint'?'SÜRE':'SEVİYE';
+  $('lvVal').textContent=isRescueLevel?'🛰️':gameMode==='survival'?effLevel():gameMode==='sprint'?Math.max(0,Math.ceil(SPR_RUN.dur-SPR_RUN.t)):level;
+  $('scSub').textContent=gameMode==='sprint'?(SPR_RUN.opt.chal?`RAKİP ${SPR_RUN.opt.chal.s.toLocaleString('tr-TR')}`:`EN İYİ ${Math.max(sprintBest,0).toLocaleString('tr-TR')}`):isRescueLevel?`KURTARILAN ${rSaved} / ${RESCUE_SHIPS}`:gameMode==='survival'?`REKOR ${bestScore.toLocaleString('tr-TR')}`:`HEDEF ${Math.min(levelScore,levelTarget(level))} / ${levelTarget(level)}`;
   const hs=$('hearts');const key=lives+'|'+isRescueLevel;
   if(hs._k!==key){hs._k=key;let h='';if(!isRescueLevel){if(lives<=5){for(let i=0;i<Math.max(3,lives);i++)h+=`<span class="h${i<lives?'':' off'}">♥</span>`;}else h=`<span class="h">♥</span><span class="x">×${lives}</span>`;}hs.innerHTML=h;hs.className=lives<=1?'low':'';}
   $('dVal').textContent=diamonds;updateDiaBtn();
-  const pct=isRescueLevel?(RESCUE_SHIPS-rShips)/RESCUE_SHIPS*100:gameMode==='classic'?Math.min(100,levelScore/levelTarget(level)*100):Math.min(100,(survScore%1000)/10);
+  const pct=gameMode==='sprint'?Math.min(100,SPR_RUN.t/SPR_RUN.dur*100):isRescueLevel?(RESCUE_SHIPS-rShips)/RESCUE_SHIPS*100:gameMode==='classic'?Math.min(100,levelScore/levelTarget(level)*100):Math.min(100,(survScore%1000)/10);
   $('pb').style.width=pct+'%';$('pb').style.background=isRescueLevel?'linear-gradient(90deg,#1aa6c9,#3fd8e8)':'';
 }
 function updateDiaBtn(){
@@ -1608,11 +1670,131 @@ function updatePUBar(){
 }
 
 // ══════════════════════════════════════════════════════
+// SPRINT RUNS — 60 s score attack on a seeded cosmos. The Daily Cosmos is the same
+// seed for everyone on a given day (one official attempt); a challenge link carries
+// a friend's seed and score.
+// ══════════════════════════════════════════════════════
+const SPR_RUN={seed:0,opt:{},t:0,dur:60,acc:0,blocks:[],caught:0,ended:true,res:null};
+function dailyNo(d=new Date()){return Math.floor((Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())-Date.UTC(2026,0,1))/864e5)+1;}
+function dailySeed(n){return (Math.imul(n,2654435761)^0x5bd1e995)>>>0;}
+function sprintSetup(seed){const r=mulberry(seed^0x9e3779b9);return {zone:Math.floor(r()*ZONES.length),lvl:7+Math.floor(r()*12)};}
+function startSprint(seed,opt={}){
+  runId++;hideModals();$('sMenu').classList.remove('on');$('sChal').classList.remove('on');$('sPause').classList.remove('on');SND.duck(1,0);
+  gameMode='sprint';const S=sprintSetup(seed);
+  Object.assign(SPR_RUN,{seed,opt,t:0,acc:0,blocks:Array.from({length:10},()=>({c:0,p:0})),caught:0,ended:false,res:null,zone:S.zone});
+  rngS=mulberry(seed);level=S.lvl;totalScore=0;levelScore=0;levelStartScore=0;lives=3;comboCount=0;maxCombo=0;comboMult=1;perfectCount=0;bossSlain=false;bossKills=0;
+  curR=BASE_R;tgtR=BASE_R;diamTimer=0;neutT=0;bombsInLevel=0;masterUsed=true;levelT=0;
+  balls=[];blocks=[];rifts=[];ftexts=[];sparks=[];shards=[];cols=[];PU={slow:0,magnet:0,mult:0};explA=0;shake=0;slowMo=0;heat=0;shock=0;flash=0;
+  hX=W/2;hY=H/2;hBaseX=hX;hBaseY=hY;hWanderT=0;hWpTimer=0;isRescueLevel=false;ship=null;
+  setZone(S.zone);$('rhud').style.display='none';$('pauseBtn').textContent='⏸';$('combo').style.opacity='0';updateCombo();
+  $('badge').className='hud-float resc';$('badge').textContent=opt.chal?`⚔️ ${opt.chal.n.toUpperCase()} · ${opt.chal.s.toLocaleString('tr-TR')}`:opt.daily?`📅 GÜNLÜK KOZMOS #${opt.daily}`:'⏱ 60 SANİYE';
+  for(let i=0;i<4;i++)spawnBall(new Ball(false,null,{inside:true}));
+  resetInact();SND.resume();SND.startDrone();SND.music('game');recStart();
+  gState='playing';lastT=performance.now();updateUI();showHint();
+}
+function sprintGrid(){return SPR_RUN.blocks.map(b=>b.p?'⭐':b.c>=3?'🟡':b.c?'🟣':'⚫').join('');}
+function sprintEnd(){
+  if(SPR_RUN.ended)return;SPR_RUN.ended=true;runId++;rngS=null;gState='over';SND.music('menu');$('minus').style.display='none'; // runId++ drops pending penalty timers
+  const opt=SPR_RUN.opt,res={score:totalScore,combo:maxCombo,perf:perfectCount,caught:SPR_RUN.caught,grid:sprintGrid(),zone:SPR_RUN.zone,daily:opt.daily||0,chal:opt.chal||null};
+  let official=false;if(opt.daily&&DAILY.n!==opt.daily){official=true;DAILY={n:opt.daily,score:res.score,grid:res.grid,combo:res.combo,perf:res.perf};}
+  res.official=official;const newBest=res.score>sprintBest;if(newBest)sprintBest=res.score;SPR_RUN.res=res;
+  dmEvent('score',totalScore,true);addLB(totalScore);if(totalScore>bestScore)bestScore=totalScore;saveG();
+  $('spHead').textContent=res.chal?'⚔️ MEYDAN OKUMA':res.daily?`📅 GÜNLÜK KOZMOS #${res.daily}`:'⏱ 60 SANİYE';
+  $('spZone').textContent=ZONES[res.zone].n;$('spScore').textContent=res.score.toLocaleString('tr-TR');$('spGrid').textContent=res.grid;
+  $('spStats').textContent=`${res.caught} gök cismi · ×${res.combo} combo · ${res.perf} PERFECT`;
+  let v='',col='var(--gold)';
+  if(res.chal){const d=res.score-res.chal.s;v=d>0?`🏆 ${res.chal.n} geçildi! (+${d.toLocaleString('tr-TR')})`:d===0?`🤝 ${res.chal.n} ile berabere!`:`Az kaldı! Rakibin ${res.chal.n} ${(-d).toLocaleString('tr-TR')} puan önde`;col=d>0?'var(--mint)':'#ff8a98';}
+  else if(newBest)v='🏆 YENİ 60 SN REKORU!';else v=`En iyi: ${sprintBest.toLocaleString('tr-TR')}`;
+  $('spVerdict').textContent=v;$('spVerdict').style.color=col;
+  $('spNote').textContent=res.daily?(official?'Bugünkü resmi sonucun kaydedildi. Yarın yeni kozmos!':'Antrenman turu: resmi sonucun değişmez.'):'';
+  $('spChal').textContent=res.chal?'⚔️ GERİ MEYDAN OKU':'⚔️ MEYDAN OKU';
+  sfx(res.chal&&res.score>res.chal.s||newBest?'levelup':'gameover',{vol:.8,rev:.4});
+  recStop().then(()=>{$('spClip').style.display=REC.blob?'':'none';});
+  showModal('mSprint');
+}
+function baseURL(){return location.href.split('#')[0];}
+function canLink(){return /^https?:$/.test(location.protocol)&&!/claudeusercontent|claude\.ai|localhost|127\.0\.0\.1/.test(location.hostname);}
+function b64u(t){return btoa(unescape(encodeURIComponent(t))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
+function ub64u(t){t=t.replace(/-/g,'+').replace(/_/g,'/');while(t.length%4)t+='=';return decodeURIComponent(escape(atob(t)));}
+function challengeLink(){const r=SPR_RUN.res;return baseURL()+'#ch='+b64u(JSON.stringify({v:1,n:playerName.slice(0,12),a:playerAvatar,s:r.score,seed:SPR_RUN.seed,dn:r.daily||0}));}
+function readChallenge(){
+  const m=location.hash.match(/ch=([A-Za-z0-9_-]{8,400})/);if(!m)return null;
+  try{const d=JSON.parse(ub64u(m[1]));if(d&&d.v===1&&Number.isFinite(d.seed)&&Number.isFinite(d.s))return {n:String(d.n||'Pilot').slice(0,14),a:String(d.a||'🚀').slice(0,4),s:Math.max(0,Math.min(1e7,Math.floor(d.s))),seed:d.seed>>>0,dn:d.dn|0};}catch(e){}
+  return null;
+}
+async function shareOut(text,url){
+  const full=url?`${text}\n${url}`:text;
+  try{if(navigator.share){await navigator.share(url?{text,url}:{text});return 'ok';}}catch(e){if(e&&e.name==='AbortError')return 'cancel';}
+  try{await navigator.clipboard.writeText(full);return 'copied';}catch(e){}
+  try{const ta=document.createElement('textarea');ta.value=full;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();return 'copied';}catch(e){return 'fail';}
+}
+function flashBtn(b,txt){const o=b.textContent;b.textContent=txt;setTimeout(()=>b.textContent=o,1800);}
+function resultText(r,chal){
+  const head=r.daily?`🕳️ Blackhole Storm · Günlük Kozmos #${r.daily}`:'🕳️ Blackhole Storm · 60 saniye';
+  let t=`${head}\n🌌 ${ZONES[r.zone].n}\n⭐ ${r.score.toLocaleString('tr-TR')} puan · ×${r.combo} combo · ${r.perf} PERFECT\n${r.grid}`;
+  if(chal)t+=`\n⚔️ ${r.chal?'Geri meydan okuyorum':'Meydan okuyorum'}: beni geçebilir misin?`;return t;
+}
+function renderDaily(){
+  const n=dailyNo(),S=sprintSetup(dailySeed(n)),done=DAILY.n===n;
+  $('dcTitle').textContent=`📅 GÜNLÜK KOZMOS #${n}`;$('dcZone').textContent=ZONES[S.zone].n;
+  $('dcTxt').textContent=done?`Bugünkü sonucun: ${DAILY.score.toLocaleString('tr-TR')} puan · ×${DAILY.combo} combo. Yarın yeni kozmos!`:'Bugün herkes aynı evrende 60 saniye oynuyor. Tek resmi deneme!';
+  $('dcGrid').textContent=done?DAILY.grid:'';$('dcPlay').textContent=done?'🔁 ANTRENMAN':'OYNA · 60 SN';$('dcShare').style.display=done?'':'none';
+}
+let pendingChal=readChallenge();
+function offerChallenge(){
+  const c=pendingChal;if(!c)return;pendingChal=null;try{history.replaceState(null,'',baseURL());}catch(e){}
+  $('chAv').textContent=c.a;$('chName').textContent=c.n;$('chScore').textContent=c.s.toLocaleString('tr-TR');
+  $('chTxt').textContent=`${c.n} seni aynı evrende 60 saniyelik bir yarışa çağırıyor${c.dn?` (Günlük Kozmos #${c.dn})`:''}. Bu puanı geçebilir misin?`;
+  $('chGo').onclick=()=>{SND.resume();startSprint(c.seed,{chal:c});};$('sChal').classList.add('on');
+}
+
+// ══════════════════════════════════════════════════════
+// CLIP RECORDING — sprint runs are captured into a vertical 540×960 video (with game audio),
+// framed with the score and a watermark, ready to share.
+// ══════════════════════════════════════════════════════
+const REC={mr:null,chunks:[],blob:null,type:'',cv:null,cx:null,last:0,dest:null};
+function recSupported(){return !!(window.MediaRecorder&&HTMLCanvasElement.prototype.captureStream);}
+function recStart(){
+  REC.blob=null;if(!SET.rec||!recSupported())return;
+  try{
+    const c=REC.cv||(REC.cv=document.createElement('canvas'));c.width=540;c.height=960;REC.cx=c.getContext('2d');
+    const st=c.captureStream(30);
+    if(SND.ctx&&SND.ctx.createMediaStreamDestination){REC.dest=SND.ctx.createMediaStreamDestination();SND.master.connect(REC.dest);const tr=REC.dest.stream.getAudioTracks()[0];if(tr)st.addTrack(tr);}
+    const type=['video/mp4;codecs=avc1','video/mp4','video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'].find(t=>MediaRecorder.isTypeSupported(t))||'';
+    REC.chunks=[];REC.type=type;REC.mr=new MediaRecorder(st,type?{mimeType:type,videoBitsPerSecond:1600000}:{videoBitsPerSecond:1600000});
+    REC.mr.ondataavailable=e=>{if(e.data&&e.data.size)REC.chunks.push(e.data);};REC.mr.start(1000);
+  }catch(e){REC.mr=null;}
+}
+function recFrame(){
+  if(!REC.mr)return;const now=performance.now();if(now-REC.last<32)return;REC.last=now;
+  const c=REC.cx,CW=540,CH=960,top=118,bh=CH-top-64;
+  c.fillStyle='#03040a';c.fillRect(0,0,CW,CH);
+  const k=Math.max(CW/W,bh/H),dw=W*k,dh=H*k,dx=(CW-dw)/2,dy=top+(bh-dh)/2;
+  c.save();c.beginPath();c.rect(0,top,CW,bh);c.clip();try{c.drawImage($('bg'),dx,dy,dw,dh);c.drawImage(fx,dx,dy,dw,dh);}catch(e){}c.restore();
+  c.textAlign='center';c.fillStyle='#f2c46d';c.font='700 18px Orbitron,monospace';c.fillText('BLACKHOLE STORM',CW/2,34);
+  c.fillStyle='#fff';c.font='900 44px Orbitron,monospace';c.fillText(totalScore.toLocaleString('tr-TR'),CW/2,86);
+  c.font='700 16px Orbitron,monospace';c.fillStyle='#9fe9f4';c.textAlign='left';c.fillText('⏱ '+Math.max(0,Math.ceil(SPR_RUN.dur-SPR_RUN.t)),20,86);
+  c.textAlign='right';c.fillStyle='#ff6b7a';c.fillText('♥'.repeat(Math.max(0,Math.min(5,lives))),CW-20,86);
+  c.textAlign='center';c.fillStyle='rgba(233,236,245,.85)';c.font='700 15px Orbitron,monospace';
+  c.fillText(SPR_RUN.opt.daily?`GÜNLÜK KOZMOS #${SPR_RUN.opt.daily} · ${ZONES[SPR_RUN.zone].n}`:ZONES[SPR_RUN.zone].n,CW/2,CH-26);
+}
+function recStop(){
+  return new Promise(res=>{const mr=REC.mr;REC.mr=null;if(!mr){res();return;}
+    mr.onstop=()=>{REC.blob=REC.chunks.length?new Blob(REC.chunks,{type:(REC.type||'video/webm').split(';')[0]}):null;if(REC.dest){try{SND.master.disconnect(REC.dest);}catch(e){}REC.dest=null;}res();};
+    try{mr.stop();}catch(e){res();}});
+}
+async function shareClip(){
+  if(!REC.blob)return;const ext=REC.blob.type.includes('mp4')?'mp4':'webm';const f=new File([REC.blob],`blackhole-storm-${SPR_RUN.res.score}.${ext}`,{type:REC.blob.type});
+  try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],text:resultText(SPR_RUN.res,false)});return;}}catch(e){if(e&&e.name==='AbortError')return;}
+  const a=document.createElement('a');a.href=URL.createObjectURL(f);a.download=f.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+}
+
+// ══════════════════════════════════════════════════════
 // PAUSE
 // ══════════════════════════════════════════════════════
 let pausedFrom='playing';
-function pauseGame(){if(gState==='playing'||gState==='rescue_play'){pausedFrom=gState;gState='paused';$('pauseBtn').textContent='▶';syncSettingsUI();$('sPause').classList.add('on');SND.setDrone(.05);SND.duck(.35,1e5);}}
-function resumeGame(){if(gState!=='paused')return;gState=pausedFrom;$('pauseBtn').textContent='⏸';$('sPause').classList.remove('on');$('sSet').classList.remove('on');lastT=performance.now();resetInact();SND.setDrone(isRescueLevel?.2:.14);SND.duck(1,0);
+function pauseGame(){if(gState==='playing'||gState==='rescue_play'){pausedFrom=gState;gState='paused';$('pRestartL').textContent=gameMode==='classic'?(isRescueLevel?'Görevi yeniden başlat':'Seviyeyi yeniden başlat'):gameMode==='sprint'?'60 saniyeyi yeniden başlat':'Yeniden başla';if(REC.mr&&REC.mr.state==='recording')try{REC.mr.pause();}catch(e){}$('pauseBtn').textContent='▶';syncSettingsUI();$('sPause').classList.add('on');SND.setDrone(.05);SND.duck(.35,1e5);}}
+function resumeGame(){if(gState!=='paused')return;gState=pausedFrom;if(REC.mr&&REC.mr.state==='paused')try{REC.mr.resume();}catch(e){}$('pauseBtn').textContent='⏸';$('sPause').classList.remove('on');$('sSet').classList.remove('on');lastT=performance.now();resetInact();SND.setDrone(isRescueLevel?.2:.14);SND.duck(1,0);
   if(pendingWin){pendingWin=false;levelSuccess();}}
 document.addEventListener('visibilitychange',()=>{if(document.hidden){pauseGame();saveG();}});
 
@@ -1648,12 +1830,18 @@ function loop(ts){
   if(gState==='playing'){
     const eb=earlyBoost(),cap=Math.min(20,12+Math.floor(effLevel()/3)+(eb>1?3:0));const active=balls.filter(b=>!b.suck).length;
     const sr=(gameMode==='survival'?.034+survSpeed*.003:.036*eb)*f;
-    if(active<cap&&Math.random()<sr)spawnBall();
+    if(gameMode==='sprint'){SPR_RUN.acc+=dt;while(SPR_RUN.acc>=.5){SPR_RUN.acc-=.5;if(active<16)spawnBall();}}
+    else if(active<cap&&Math.random()<sr)spawnBall();
+    if(gameMode!=='sprint'){
     levelT+=dt;if(effLevel()>=11&&!masterUsed&&levelT>15&&!bossCount(level)&&!balls.some(b=>b.isMaster||b.isBoss)&&Math.random()<.0005*f){masterUsed=true;balls.push(new Ball(true));} // at most one golden star per level
     if(Math.random()<.005*f)blocks.push(new Block());
-    if(Math.random()<.009*f)rifts.push(new Rift());
+    if(Math.random()<.009*f)rifts.push(new Rift());}
     updatePUBar();
   }
+  if(gameMode==='sprint'&&!SPR_RUN.ended&&(gState==='playing'||gState==='pen_blink'||gState==='pen_freeze')){
+    const sec=Math.ceil(SPR_RUN.dur-SPR_RUN.t);SPR_RUN.t+=dt;const s2=Math.ceil(SPR_RUN.dur-SPR_RUN.t);
+    if(s2!==sec){$('lvVal').textContent=Math.max(0,s2);$('pb').style.width=Math.min(100,SPR_RUN.t/SPR_RUN.dur*100)+'%';if(s2<=5&&s2>0)sfx('tickHi',{vol:.6,rev:0});else if(s2<=10&&s2>0)sfx('tick',{vol:.4,rev:0});}
+    if(SPR_RUN.t>=SPR_RUN.dur)sprintEnd();}
   const boss=bossActive();if(boss!==wasBoss){wasBoss=boss;SND.tension(boss);}
   updateDiaBtn();
 
@@ -1682,6 +1870,7 @@ function loop(ts){
   for(let i=shards.length-1;i>=0;i--){if(!shards[i].update(dt,f))shards.splice(i,1);else shards[i].draw();}
   for(let i=ftexts.length-1;i>=0;i--){if(!ftexts[i].update(dt))ftexts.splice(i,1);else ftexts[i].draw();}
   for(let i=cols.length-1;i>=0;i--){if(!cols[i].update(dt,f)){const c=cols.splice(i,1)[0];if(c.gem){diamonds++;sfx('gem',{vol:.45,rate:1+Math.random()*.2});}else{stars++;sfx('coin',{vol:.4,rate:1+Math.random()*.25});}updateUI();}else cols[i].draw();}
+  recFrame();
   if(explA>0){ctx.save();ctx.globalCompositeOperation='lighter';ctx.strokeStyle=`rgba(230,220,255,${explA})`;ctx.lineWidth=14*explA+2;ctx.beginPath();ctx.arc(hX,hY,explR,0,TAU);ctx.stroke();ctx.restore();explR+=9*f;explA-=.012*f;}
   requestAnimationFrame(loop);
 }
@@ -1728,7 +1917,7 @@ document.addEventListener('keydown',e=>{if(e.code==='Space'&&(gState==='playing'
 // ══════════════════════════════════════════════════════
 function syncSettingsUI(){
   const tg=(id,on)=>{const b=$(id);b.textContent=on?'AÇIK':'KAPALI';b.classList.toggle('on',on);};
-  tg('sMus',SET.music);tg('sSfx',SET.sfx);tg('sVib',SET.vib);$('sMusV').value=SET.musicVol;$('sSfxV').value=SET.sfxVol;
+  tg('sMus',SET.music);tg('sSfx',SET.sfx);tg('sVib',SET.vib);tg('sRec',SET.rec&&recSupported());$('sRec').disabled=!recSupported();$('sMusV').value=SET.musicVol;$('sSfxV').value=SET.sfxVol;
   $('sMusV').disabled=!SET.music;$('sSfxV').disabled=!SET.sfx;$('sBtnL').classList.toggle('on',SET.left);$('sBtnR').classList.toggle('on',!SET.left);
   const pl=(id,on)=>{const e=$(id);e.textContent=on?'AÇIK':'KAPALI';e.className=on?'':'off';};pl('pMusicL',SET.music);pl('pSfxL',SET.sfx);
 }
@@ -1736,6 +1925,7 @@ function setChanged(){SND.applySettings();syncSettingsUI();updateUI();saveG();}
 $('sMus').onclick=()=>{SET.music=!SET.music;setChanged();};
 $('sSfx').onclick=()=>{SET.sfx=!SET.sfx;setChanged();sfx('click',{vol:.4});};
 $('sVib').onclick=()=>{SET.vib=!SET.vib;setChanged();vib(30);};
+$('sRec').onclick=()=>{SET.rec=!SET.rec;setChanged();};
 $('sMusV').oninput=e=>{SET.musicVol=+e.target.value;SND.applySettings();};$('sMusV').onchange=saveG;
 $('sSfxV').oninput=e=>{SET.sfxVol=+e.target.value;SND.applySettings();};$('sSfxV').onchange=()=>{saveG();sfx('coin',{vol:.5});};
 $('sBtnL').onclick=()=>{SET.left=true;setChanged();};$('sBtnR').onclick=()=>{SET.left=false;setChanged();};
@@ -1760,7 +1950,7 @@ function buildProfile(){
 function checkProf(){const n=$('nameInp').value.trim();$('profOk').disabled=!(n.length>=2&&selAv);$('prevName').textContent=n||'PİLOT';}
 $('nameInp').addEventListener('input',checkProf);
 $('nameInp').addEventListener('keydown',e=>{if(e.key==='Enter'&&!$('profOk').disabled)$('profOk').click();});
-$('profOk').onclick=()=>{const n=$('nameInp').value.trim();if(n.length<2||!selAv)return;playerName=n;playerAvatar=selAv;saveG();SND.resume();sfx('confirm',{vol:.5});$('sProfile').classList.remove('on');showMenu();};
+$('profOk').onclick=()=>{const n=$('nameInp').value.trim();if(n.length<2||!selAv)return;playerName=n;playerAvatar=selAv;saveG();SND.resume();sfx('confirm',{vol:.5});$('sProfile').classList.remove('on');showMenu();offerChallenge();};
 $('editProf').onclick=()=>{$('sMenu').classList.remove('on');$('sProfile').classList.add('on');buildProfile();};
 const MODE_TXT={
   classic:'<b>🪐 Klasik</b><ul><li>Her seviyede puan hedefine ulaş, bir sonrakine geç.</li><li>Her 5 seviyede <b>kurtarma görevi</b>, her 20 seviyede <b>boss</b>.</li><li>İlerlemen kaydedilir: kaldığın seviyeden devam edersin.</li></ul>',
@@ -1771,7 +1961,8 @@ function showMenu(){
   $('menuAv').textContent=playerAvatar;$('menuName').textContent=playerName;$('menuStars').textContent=stars;$('menuDia').textContent=diamonds;
   const b=$('contBanner');if(savedLevel>1&&gameMode==='classic'){b.style.display='block';$('contText').textContent=`Seviye ${savedLevel} · ${savedScore.toLocaleString('tr-TR')} puan — kaldığın yerden devam edersin`;}else b.style.display='none';
   document.querySelectorAll('.tip canvas').forEach(c=>drawIcon(c,c.dataset.kind));
-  selMode(gameMode);updateUI();renderEvo();renderDM();
+  if(gameMode==='sprint')gameMode='classic';rngS=null;if(REC.mr)recStop();
+  selMode(gameMode);updateUI();renderEvo();renderDM();renderDaily();
   $('sMenu').classList.add('on');gState='menu';SND.music('menu');SND.tension(false);checkDaily();
 }
 function selMode(m){gameMode=m;$('modeC').classList.toggle('on',m==='classic');$('modeS').classList.toggle('on',m==='survival');$('modeDesc').innerHTML=MODE_TXT[m];
@@ -1781,6 +1972,16 @@ $('modeC').onclick=()=>selMode('classic');$('modeS').onclick=()=>selMode('surviv
 $('startBtn').onclick=()=>{SND.resume();SND.startDrone();SND.music('game');sfx('confirm',{vol:.5});$('sMenu').classList.remove('on');$('sDaily').classList.remove('on');resize();
   if(gameMode==='classic'&&savedLevel>1)resetRun(true,true);else resetRun(true,false);};
 $('lbBtn').onclick=showLB;
+$('dcPlay').onclick=()=>{const n=dailyNo();startSprint(dailySeed(n),{daily:n});};
+$('dcShare').onclick=async()=>{const n=dailyNo();if(DAILY.n!==n)return;const r={score:DAILY.score,combo:DAILY.combo,perf:DAILY.perf,grid:DAILY.grid,zone:sprintSetup(dailySeed(n)).zone,daily:n};
+  const out=await shareOut(resultText(r,false),canLink()?baseURL():'');if(out==='copied')flashBtn($('dcShare'),'KOPYALANDI ✓');};
+$('spShare').onclick=async()=>{const r=SPR_RUN.res;if(!r)return;const out=await shareOut(resultText(r,false),canLink()?baseURL():'');if(out==='copied')flashBtn($('spShare'),'KOPYALANDI ✓');};
+$('spChal').onclick=async()=>{const r=SPR_RUN.res;if(!r)return;const url=challengeLink();const out=await shareOut(resultText(r,true),url);if(out==='copied')flashBtn($('spChal'),'LİNK KOPYALANDI ✓');
+  if(!canLink())$('spNote').textContent='Not: meydan okuma linki, oyun kendi web adresinde yayınlandığında arkadaşlarında açılır.';};
+$('spClip').onclick=shareClip;
+$('spAgain').onclick=()=>startSprint(SPR_RUN.seed,SPR_RUN.res&&SPR_RUN.res.chal?{chal:SPR_RUN.res.chal}:SPR_RUN.opt.daily?{daily:SPR_RUN.opt.daily}:{});
+$('spMenu').onclick=()=>{hideModals();balls=[];showMenu();};
+$('chNo').onclick=()=>$('sChal').classList.remove('on');
 $('atlasBtn').onclick=()=>{atlasSel=null;$('aFact').innerHTML='Bir karta dokun: gerçek bilgisini gör.';renderAtlas();$('sAtlas').classList.add('on');};
 $('atlasClose').onclick=()=>$('sAtlas').classList.remove('on');
 $('zoneOk').onclick=e=>{e.stopPropagation();levelCheck(true);};$('lbClose').onclick=()=>$('sLB').classList.remove('on');
@@ -1788,7 +1989,7 @@ $('diaBtn').onclick=e=>{e.stopPropagation();useDiamond();};
 $('pauseBtn').onclick=e=>{e.stopPropagation();if(gState==='paused')resumeGame();else pauseGame();};
 $('pResume').onclick=resumeGame;
 $('pLB').onclick=showLB;
-$('pRestart').onclick=()=>{$('sPause').classList.remove('on');SND.duck(1,0);savedLevel=1;savedScore=0;saveG();resetRun(true,false);};
+$('pRestart').onclick=()=>{$('sPause').classList.remove('on');SND.duck(1,0);if(gameMode==='classic'&&!isRescueLevel)resetRun(false);else if(gameMode==='sprint')startSprint(SPR_RUN.seed,SPR_RUN.opt);else if(gameMode==='classic')levelCheck(true);else resetRun(true,false);};
 $('pMenu').onclick=()=>{$('sPause').classList.remove('on');SND.duck(1,0);$('pauseBtn').textContent='⏸';hideModals();balls=[];ship=null;isRescueLevel=false;$('rhud').style.display='none';$('badge').className='hud-float';showMenu();};
 $('nextLvl').onclick=e=>{e.stopPropagation();level++;levelCheck();};
 $('introOk').onclick=e=>{e.stopPropagation();hideModals();initLevel();};
@@ -1796,8 +1997,9 @@ $('rescueGo').onclick=e=>{e.stopPropagation();hideModals();initRescue();};
 $('againBtn').onclick=()=>{savedLevel=1;savedScore=0;saveG();SND.music('game');resetRun(true,false);};
 $('overMenu').onclick=()=>{hideModals();balls=[];showMenu();};
 $('contYes').onclick=()=>{if(stars>=100){stars-=100;lives=3;curR=BASE_R;tgtR=BASE_R;resetInact();hideModals();updateUI();gState='playing';lastT=performance.now();saveG();SND.setDrone(.14,650);SND.duck(1,0);sfx('powerup',{vol:.6});}else showModal('mNoStar');};
-$('contNo').onclick=()=>{hideModals();gameOver();};
-$('noStarOk').onclick=()=>{hideModals();gameOver();};
+$('contRetry').onclick=retryLevel;
+$('contNo').onclick=()=>{hideModals();if(gameMode==='classic'){addLB(totalScore);if(totalScore>bestScore)bestScore=totalScore;savedLevel=level;savedScore=levelStartScore;saveG();balls=[];showMenu();}else gameOver();};
+$('noStarOk').onclick=()=>{hideModals();if(gameMode==='classic')showCont();else gameOver();};
 $('shareBtn').onclick=async()=>{const txt=`${playerAvatar} ${playerName}: Blackhole Storm'da ${totalScore.toLocaleString('tr-TR')} puan, seviye ${level}! Geçebilir misin?`;
   try{await navigator.clipboard.writeText(txt);$('shareBtn').textContent='KOPYALANDI';}catch(e){$('shareBtn').textContent='KOPYALANAMADI';}setTimeout(()=>$('shareBtn').textContent='SKORU KOPYALA',1800);};
 function endRescue(ok,st){
@@ -1819,8 +2021,11 @@ for(let i=0;i<70;i++)dust.push(new Dust());
 SND.init();
 buildProfile();
 updateUI();
-if(playerName&&playerAvatar)showMenu();else $('sProfile').classList.add('on');
+if(playerName&&playerAvatar){showMenu();offerChallenge();}else $('sProfile').classList.add('on');
 requestAnimationFrame(t=>{lastT=t;loop(t);});
+if('serviceWorker' in navigator&&canLink()&&window.top===window)navigator.serviceWorker.register('sw.js').catch(()=>{});
+let installEvt=null;window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installEvt=e;$('installBtn').style.display='';});
+$('installBtn').onclick=async()=>{if(!installEvt)return;installEvt.prompt();try{await installEvt.userChoice;}catch(e){}installEvt=null;$('installBtn').style.display='none';};
 const Z0=zoneOf(savedLevel);curZone=Z0;
 Promise.all([loadImg(((window.ASSETS||{}).bgs||[])[Z0]),loadImg((window.ASSETS||{}).atlas)]).then(([bg,at])=>{
   IMG.bgs[Z0]=bg;IMG.bg=bg;IMG.atlas=at;buildSprites();glTextures();
