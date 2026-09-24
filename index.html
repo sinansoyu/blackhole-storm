@@ -675,7 +675,7 @@ function buildSprites(){
 // Rendered at the device's full pixel density; quality only drops while frames are slow.
 // ══════════════════════════════════════════════════════
 // Planet legibility over bright skies — A: rim light + dark halo, B: soft-focus dimmed sky while playing, C: fill light on night sides
-const VIS={sep:false,focus:false,fill:false};
+const VIS={sep:true,focus:true,fill:true};
 const GL={focus:0,gl:null,ok:false,ready:false,scale:1,quality:1,good:0,bg:null,body:null,qTri:null,qStrip:null,texBg:null,texAtlas:null,deep:[.33,.29,.6],mid:[.9,.84,1]};
 const HDR=`#ifdef GL_FRAGMENT_PRECISION_HIGH
 precision highp float;
