@@ -257,7 +257,6 @@ button{font-family:inherit;}
 .zlabel b{display:block;font-family:'Orbitron',monospace;font-size:10.5px;letter-spacing:2px;color:#e6dcff;}
 .zlabel small{font-family:'Orbitron',monospace;font-size:8.5px;letter-spacing:1px;color:#a9a2d6;}
 #mapSvg{position:absolute;left:0;top:0;z-index:1;pointer-events:none;}
-#mapStars{position:absolute;left:0;right:0;top:0;bottom:0;width:100%;height:100%;pointer-events:none;z-index:3;}
 .nd{position:absolute;z-index:2;width:52px;height:52px;margin:-26px 0 0 -26px;border-radius:50%;border:none;padding:0;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-weight:900;font-size:15px;cursor:pointer;}
 .nd.done{background:radial-gradient(circle at 35% 30%,#fff3d0,#f2c46d 55%,#b8741e);color:#2a1a04;box-shadow:0 0 0 3px rgba(3,4,10,.8),0 0 16px rgba(242,196,109,.45);}
 .nd.cur{background:radial-gradient(circle at 35% 30%,#e8fdff,#3fd8e8 55%,#127a8f);color:#02141a;box-shadow:0 0 0 3px rgba(3,4,10,.85),0 0 0 7px rgba(63,216,232,.45),0 0 26px rgba(63,216,232,.8);animation:ndPulse 1.4s ease-in-out infinite;}
@@ -458,7 +457,6 @@ button{font-family:inherit;}
 <div class="screen" id="sMap" style="z-index:125;">
  <div class="mhead"><button class="icb" id="mapBack" aria-label="Geri">←</button><b>SEVİYE HARİTASI</b><small id="mapStarsTxt"></small></div>
  <div id="mapScroll"><div id="mapInner"><svg id="mapSvg"></svg></div></div>
- <canvas id="mapStars"></canvas>
  <div id="mSheet"><div class="h"><div class="ic" id="shIc">🪐</div><div><b id="shT"></b><small id="shS"></small></div></div><p id="shP"></p>
   <div class="row"><button class="btn sec" id="shClose">KAPAT</button><button class="btn" id="shGo">OYNA</button></div></div>
 </div>
@@ -1227,7 +1225,7 @@ function levelKind(l){
   return null;
 }
 const KIND_TXT={boss:'Boss seviyesi: halkanın rengini izle. Yeşil vur, turuncu bekle, kırmızı dokunma.',res:'Mekiği doğru anda fırlat, istasyona ulaştır. Her kurtarılan mekik bir yıldız.',mis:'Filoyu kurtarma görevi. Tek şans: tekrar oynanamaz.'};
-let mapPts=[],mapN=0,mapStarsRaf=0;
+let mapPts=[],mapN=0;
 function renderMapCard(){
   const cur=Math.max(1,savedLevel);let nb=0;for(let l=cur;l<cur+60;l++){const k=levelKind(l);if(k&&k.t==='boss'){nb=l;break;}}
   $('mapTxt').innerHTML=`${cur>1?`${cur-1} seviye geçildi · ${totalStars()} ⭐`:'Yolculuğun burada başlıyor'}<br>Sıradaki boss: seviye ${nb}`;
@@ -1236,9 +1234,8 @@ function renderMapCard(){
   c.setLineDash([2,8]);c.strokeStyle='rgba(255,255,255,.35)';c.beginPath();P.slice(5).forEach((p,i)=>i?c.lineTo(...p):c.moveTo(...p));c.stroke();c.setLineDash([]);
   P.forEach((p,i)=>{c.fillStyle=i<5?'#f2c46d':i===5?'#3fd8e8':'#2a2e44';c.beginPath();c.arc(p[0],p[1],i===5?9:7,0,TAU);c.fill();});
 }
-function openMap(){$('sMap').classList.add('on');$('mSheet').classList.remove('on');buildMap();requestAnimationFrame(()=>{const sc=$('mapScroll'),cp=mapPts[Math.max(1,savedLevel)-1];if(cp)sc.scrollTop=cp.y-sc.clientHeight*.55;});
-  cancelAnimationFrame(mapStarsRaf);mapStarsLoop();}
-function closeMap(){$('sMap').classList.remove('on');cancelAnimationFrame(mapStarsRaf);}
+function openMap(){$('sMap').classList.add('on');$('mSheet').classList.remove('on');buildMap();requestAnimationFrame(()=>{const sc=$('mapScroll'),cp=mapPts[Math.max(1,savedLevel)-1];if(cp)sc.scrollTop=cp.y-sc.clientHeight*.55;});}
+function closeMap(){$('sMap').classList.remove('on');}
 function buildMap(){
   const sc=$('mapScroll'),inner=$('mapInner'),svg=$('mapSvg'),cur=Math.max(1,savedLevel);
   const GAP=92,PADB=120,PADT=150,W0=sc.clientWidth||360;mapN=Math.max(30,Math.ceil((cur+12)/10)*10);
@@ -1274,20 +1271,6 @@ function mapSheet(l,st,k){
   else if(k&&k.t==='mis'){$('shS').textContent=`${z.n} · ${ls===3?'filo eve döndü 🏅':ls===-1?'görev başarısız 💔':'görev yok'}`;$('shP').textContent=ls?'Eve Dönüş görevleri tek şanslıdır, tekrar oynanamaz.':'Sen bu seviyeyi geçtiğinde Eve Dönüş görevi henüz oyunda yoktu. Bir sonraki görev seni bekliyor.';go.textContent='TEKRARI YOK';go.disabled=true;go.onclick=null;}
   else{$('shS').textContent=`${z.n} · ${starStr(ls)}`;$('shP').textContent=pre+'Tekrar oyna, eksik yıldızları topla. Her yeni yıldız +5 ⭐. Toplam puanın ve kaldığın seviye değişmez.';go.textContent='🔄 TEKRAR OYNA';go.onclick=()=>{closeMap();startReplay(l);};}
   $('mSheet').classList.add('on');
-}
-// a few soft, slowly breathing stars over the map photos (drift slightly with scrolling for depth)
-function mapStarsLoop(){
-  const cv=$('mapStars'),r=cv.getBoundingClientRect(),d=Math.min(devicePixelRatio||1,2);
-  if(cv.width!==Math.round(r.width*d)||!cv._st){cv.width=Math.round(r.width*d);cv.height=Math.round(r.height*d);
-    cv._st=Array.from({length:26},()=>({x:Math.random()*r.width,y:Math.random()*r.height,s:Math.random()*1.4+1.1,p:Math.random()*TAU,T:7+Math.random()*7,flare:Math.random()<.3}));}
-  const c=cv.getContext('2d');c.setTransform(d,0,0,d,0,0);c.clearRect(0,0,r.width,r.height);c.globalCompositeOperation='lighter';
-  const t=performance.now()/1000,off=$('mapScroll').scrollTop*.08;
-  for(const st of cv._st){const a=.45+.35*Math.sin(t*TAU/st.T+st.p),y=((st.y-off)%r.height+r.height)%r.height,R=st.s*2.6;
-    const g=c.createRadialGradient(st.x,y,0,st.x,y,R);g.addColorStop(0,`rgba(255,255,255,${a})`);g.addColorStop(.35,`rgba(200,220,255,${a*.45})`);g.addColorStop(1,'rgba(160,190,255,0)');
-    c.fillStyle=g;c.beginPath();c.arc(st.x,y,R,0,TAU);c.fill();
-    if(st.flare){c.strokeStyle=`rgba(220,232,255,${a*.35})`;c.lineWidth=.8;c.beginPath();c.moveTo(st.x-R*2.2,y);c.lineTo(st.x+R*2.2,y);c.moveTo(st.x,y-R*2.2);c.lineTo(st.x,y+R*2.2);c.stroke();}}
-  c.globalCompositeOperation='source-over';
-  if($('sMap').classList.contains('on'))mapStarsRaf=requestAnimationFrame(mapStarsLoop);
 }
 // guide: everything that used to crowd the main menu
 const GUIDE={
