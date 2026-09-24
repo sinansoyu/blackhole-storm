@@ -674,7 +674,9 @@ function buildSprites(){
 // Pass 2: every planet as a lit, rotating textured sphere on its own quad.
 // Rendered at the device's full pixel density; quality only drops while frames are slow.
 // ══════════════════════════════════════════════════════
-const GL={gl:null,ok:false,ready:false,scale:1,quality:1,good:0,bg:null,body:null,qTri:null,qStrip:null,texBg:null,texAtlas:null,deep:[.33,.29,.6],mid:[.9,.84,1]};
+// Planet legibility over bright skies — A: rim light + dark halo, B: soft-focus dimmed sky while playing, C: fill light on night sides
+const VIS={sep:false,focus:false,fill:false};
+const GL={focus:0,gl:null,ok:false,ready:false,scale:1,quality:1,good:0,bg:null,body:null,qTri:null,qStrip:null,texBg:null,texAtlas:null,deep:[.33,.29,.6],mid:[.9,.84,1]};
 const HDR=`#ifdef GL_FRAGMENT_PRECISION_HIGH
 precision highp float;
 #else
@@ -683,14 +685,14 @@ precision mediump float;
 `;
 const VS_BG='attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}';
 const FS_BG=HDR+`
-uniform vec2 uRes,uHole,uTexSz,uPan;uniform float uR,uRing,uT,uLock,uHeat,uShock,uFlash,uScale,uStage;uniform vec3 uDeep,uMid;uniform sampler2D uTex;
+uniform vec2 uRes,uHole,uTexSz,uPan;uniform float uR,uRing,uT,uLock,uHeat,uShock,uFlash,uScale,uStage;uniform vec3 uDeep,uMid;uniform sampler2D uTex,uTexB;uniform float uBlur,uDim;
 uniform vec3 uDM[3]; // dark-matter clumps: x,y,radius in device px (radius 0 = unused)
 float h3(vec3 p){p=fract(p*.3183099+.1);p*=17.;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}
 float n3(vec3 x){vec3 i=floor(x),f=fract(x);f=f*f*(3.-2.*f);
  return mix(mix(mix(h3(i),h3(i+vec3(1,0,0)),f.x),mix(h3(i+vec3(0,1,0)),h3(i+vec3(1,1,0)),f.x),f.y),
             mix(mix(h3(i+vec3(0,0,1)),h3(i+vec3(1,0,1)),f.x),mix(h3(i+vec3(0,1,1)),h3(i+vec3(1,1,1)),f.x),f.y),f.z);}
 vec3 bgAt(vec2 px){float sc=max(uRes.x/uTexSz.x,uRes.y/uTexSz.y)*1.1;vec2 uv=(px-uRes*.5)/(uTexSz*sc)+.5+uPan;
- uv=abs(mod(uv+1.,2.)-1.);uv.y=1.-uv.y;return texture2D(uTex,uv).rgb;}
+ uv=abs(mod(uv+1.,2.)-1.);uv.y=1.-uv.y;return mix(texture2D(uTex,uv).rgb,texture2D(uTexB,uv).rgb,uBlur);}
 float streak(float a,float x){vec2 q=vec2(cos(a),sin(a));return n3(vec3(q*1.6,x*34.))*.6+n3(vec3(q*3.1,x*91.+3.))*.4;}
 void main(){
  vec2 fc=gl_FragCoord.xy,d=fc-uHole;float r=length(d),R=uR,x=r/R;vec2 dir=d/max(r,1e-3);
@@ -700,7 +702,7 @@ void main(){
  for(int i=0;i<3;i++){if(uDM[i].z>0.){vec2 q=sp-uDM[i].xy;float qr=length(q),e2=uDM[i].z*uDM[i].z*1.2;sp-=q/max(qr,1.)*e2/max(qr,uDM[i].z*.35);}}
  vec3 bg=bgAt(sp);
  bg*=mix(1.,clamp(1.+.55*exp(-abs(x-1.55)*3.),1.,1.55),smoothstep(4.,1.2,x));
- bg=pow(bg,vec3(1.1))*.84;
+ bg=pow(bg,vec3(1.1))*.84*uDim;
  bg*=1.-.34*uLock*smoothstep(uRing+1.5*uScale,uRing-1.5*uScale,r);
  vec3 col=bg;
  if(x<4.2){
@@ -734,7 +736,7 @@ void main(){vec2 l=a*uPad;vL=l;vec2 q=l*uRad;float c=cos(uAng),s=sin(uAng);
  gl_Position=vec4((uC+r)/uRes*2.-1.,0.,1.);}`;
 const FS_BODY=HDR+`
 uniform sampler2D uTex;uniform vec4 uCell,uAtmo;uniform vec3 uL;
-uniform float uSpin,uTilt,uPitch,uFade,uRed,uEmit,uFlashW,uLightK,uHot,uEdge;
+uniform float uSpin,uTilt,uPitch,uFade,uRed,uEmit,uFlashW,uLightK,uHot,uEdge,uSep,uFill;
 varying vec2 vL;
 void main(){
  vec2 p=vL;float rr=length(p);vec3 col=vec3(0.);float a=0.;
@@ -749,7 +751,8 @@ void main(){
    float limb=.38+.62*pow(z,.5);col=tex*limb*vec3(1.45,.66,.44)*1.2+vec3(1.,.45,.2)*pow(1.-z,3.)*.7;
   }else{
    vec3 L=normalize(uL);float nl=dot(n,L),dif=max(nl,0.),wrap=nl*.5+.5;
-   col=tex*(.1+1.1*dif*uLightK+.08*wrap);
+   col=tex*(.1+.16*uFill+1.1*dif*uLightK+(.08+.12*uFill)*wrap);
+   col+=vec3(.95,.93,1.)*smoothstep(.8,.985,rr)*(.3+.7*max(dot(p/max(rr,.001),normalize(uL.xy+1e-4)),0.))*.55*uSep;
    col+=uAtmo.rgb*pow(1.-z,2.2)*uAtmo.a*(.2+.9*wrap);
    col+=vec3(.9,.86,1.)*uHot*dif*dif*.4;
   }
@@ -760,6 +763,7 @@ void main(){
  float h=rr>.97?exp(-(rr-1.)*(uEmit>.5?2.6:10.)):0.;
  vec3 hc=uEmit>.5?vec3(1.,.36,.14)*.75:uAtmo.rgb*uAtmo.a*.45*(.3+uLightK);
  vec3 outc=col*a+hc*h*(1.-a);float outa=a+h*(1.-a)*.35;
+ outa+=(1.-outa)*uSep*(1.-uEmit)*.62*step(1.,rr)*(1.-smoothstep(1.,1.3,rr)); // dark halo lifts the body off a bright sky
  gl_FragColor=vec4(outc,outa)*uFade;
 }`;
 function glInit(){
@@ -769,8 +773,8 @@ function glInit(){
   const sh=(t,s)=>{const o=gl.createShader(t);gl.shaderSource(o,s);gl.compileShader(o);if(!gl.getShaderParameter(o,gl.COMPILE_STATUS)){console.error(gl.getShaderInfoLog(o));return null;}return o;};
   const prog=(vs,fs,names)=>{const v=sh(gl.VERTEX_SHADER,vs),f=sh(gl.FRAGMENT_SHADER,fs);if(!v||!f)return null;const p=gl.createProgram();gl.attachShader(p,v);gl.attachShader(p,f);gl.linkProgram(p);
     if(!gl.getProgramParameter(p,gl.LINK_STATUS)){console.error(gl.getProgramInfoLog(p));return null;}const u={};names.forEach(n=>u[n]=gl.getUniformLocation(p,n));return {p,u,a:gl.getAttribLocation(p,vs.indexOf('attribute vec2 a;')>=0?'a':'p')};};
-  GL.bg=prog(VS_BG,FS_BG,['uRes','uHole','uTexSz','uPan','uR','uRing','uT','uLock','uHeat','uShock','uFlash','uScale','uStage','uDeep','uMid','uTex','uDM']);
-  GL.body=prog(VS_BODY,FS_BODY,['uRes','uC','uRad','uAng','uSt','uSq','uPad','uTex','uCell','uAtmo','uL','uSpin','uTilt','uPitch','uFade','uRed','uEmit','uFlashW','uLightK','uHot','uEdge']);
+  GL.bg=prog(VS_BG,FS_BG,['uRes','uHole','uTexSz','uPan','uR','uRing','uT','uLock','uHeat','uShock','uFlash','uScale','uStage','uDeep','uMid','uTex','uTexB','uBlur','uDim','uDM']);
+  GL.body=prog(VS_BODY,FS_BODY,['uRes','uC','uRad','uAng','uSt','uSq','uPad','uTex','uCell','uAtmo','uL','uSpin','uTilt','uPitch','uFade','uRed','uEmit','uFlashW','uLightK','uHot','uEdge','uSep','uFill']);
   if(!GL.bg||!GL.body)return false;
   GL.qTri=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,GL.qTri);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
   GL.qStrip=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,GL.qStrip);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
@@ -785,9 +789,14 @@ function glTextures(){
     gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,img);
     gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);return t;};
-  GL.texBg=mk(IMG.bg);GL.texAtlas=mk(IMG.atlas);GL.ready=true;
+  GL.texBg=mk(IMG.bg);GL.texBgB=mk(blurCopy(IMG.bg));GL.texAtlas=mk(IMG.atlas);GL.ready=true;
 }
-function glSetBg(img){if(!GL.ok||!GL.texBg||!img)return;const gl=GL.gl;gl.bindTexture(gl.TEXTURE_2D,GL.texBg);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,img);}
+function blurCopy(img){ // down- then up-scaling gives an even blur on every browser (canvas filters are not everywhere)
+  const w=img.width,h=img.height,s=document.createElement('canvas');s.width=Math.max(1,Math.round(w*.18));s.height=Math.max(1,Math.round(h*.18));
+  const sg=s.getContext('2d');sg.imageSmoothingQuality='high';sg.drawImage(img,0,0,s.width,s.height);
+  const o=document.createElement('canvas');o.width=w;o.height=h;const og=o.getContext('2d');og.imageSmoothingQuality='high';og.drawImage(s,0,0,w,h);return o;}
+function glSetBg(img){if(!GL.ok||!GL.texBg||!img)return;const gl=GL.gl;gl.bindTexture(gl.TEXTURE_2D,GL.texBg);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,img);
+  if(GL.texBgB){gl.bindTexture(gl.TEXTURE_2D,GL.texBgB);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,blurCopy(img));}}
 function glResize(){
   if(!GL.gl)return;const cv=$('bg');
   GL.scale=Math.min(window.devicePixelRatio||1,2)*GL.quality;
@@ -805,7 +814,10 @@ function glDraw(t,sx=0,sy=0){
   const tt=holeTint(),kk=.06;for(let i=0;i<3;i++){GL.deep[i]+=(tt[0][i]-GL.deep[i])*kk;GL.mid[i]+=(tt[1][i]-GL.mid[i])*kk;}
   gl.viewport(0,0,cv.width,cv.height);gl.disable(gl.BLEND);
   const B=GL.bg,u=B.u;gl.useProgram(B.p);gl.bindBuffer(gl.ARRAY_BUFFER,GL.qTri);gl.enableVertexAttribArray(B.a);gl.vertexAttribPointer(B.a,2,gl.FLOAT,false,0,0);
+  gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,GL.texBgB);gl.uniform1i(u.uTexB,1);
   gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,GL.texBg);gl.uniform1i(u.uTex,0);
+  const inPlay=gState==='playing'||gState==='pen_blink'||gState==='pen_freeze'||gState==='rescue_play'||gState==='lvlup_anim';GL.focus+=((VIS.focus&&inPlay?1:0)-GL.focus)*.06;
+  gl.uniform1f(u.uBlur,GL.focus*.85);gl.uniform1f(u.uDim,1-.2*GL.focus);
   gl.uniform2f(u.uRes,cv.width,cv.height);gl.uniform2f(u.uHole,(hX+sx)*k,(H-hY-sy)*k);gl.uniform2f(u.uTexSz,IMG.bg.width,IMG.bg.height);
   gl.uniform2f(u.uPan,(hX/W-.5)*.025+Math.sin(t*.021)*.02,(hY/H-.5)*.02+Math.cos(t*.017)*.02);
   gl.uniform1f(u.uR,curR/RING_K*k);gl.uniform1f(u.uRing,(curR+1)*k);gl.uniform1f(u.uT,t%600);gl.uniform1f(u.uLock,lockK);gl.uniform1f(u.uScale,k);
@@ -832,7 +844,7 @@ function drawBodyGL(b,k,sx,sy){
   gl.uniform3f(u.uL,L.x,-L.y,.55);gl.uniform1f(u.uLightK,L.k);gl.uniform1f(u.uHot,clamp(1-(d-curR)/(curR*3),0,1));
   gl.uniform1f(u.uSpin,b.spinA);gl.uniform1f(u.uTilt,b.tilt+b.wobA*Math.sin(b.age*b.wobF+b.ph));gl.uniform1f(u.uPitch,b.pitch+b.wobA*.7*Math.cos(b.age*b.wobF*.8+b.ph));
   gl.uniform1f(u.uFade,fall?b.fade:1);gl.uniform1f(u.uRed,fall?b.sp*.6:0);gl.uniform1f(u.uEmit,b.isBoss?1:0);
-  gl.uniform1f(u.uFlashW,Math.max(b.hitFlash>0?b.hitFlash*1.6:0,b.suck?(b.suck.whiten||0)+(b.suck.glow||0)*.25:0));gl.uniform1f(u.uEdge,Math.max(2,b.r*k*1.3));
+  gl.uniform1f(u.uFlashW,Math.max(b.hitFlash>0?b.hitFlash*1.6:0,b.suck?(b.suck.whiten||0)+(b.suck.glow||0)*.25:0));gl.uniform1f(u.uSep,VIS.sep?1:0);gl.uniform1f(u.uFill,VIS.fill?1:0);gl.uniform1f(u.uEdge,Math.max(2,b.r*k*1.3));
   gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
 }
 
