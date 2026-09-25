@@ -555,5 +555,7 @@
 "Üyeliğin aktif": "Your membership is active",
 "Üçünü de bitir: +{n} 💎 bonus": "Finish all three: +{n} 💎 bonus",
 "🏆 {p} geçildi! (+{d})": "🏆 You beat {p}! (+{d})",
-"🤝 {p} ile berabere!": "🤝 Tied with {p}!"
+"🤝 {p} ile berabere!": "🤝 Tied with {p}!",
+"CİHAZ SAATİ GERİ ALINMIŞ": "DEVICE CLOCK WAS TURNED BACK",
+"Günlük ödüller saat düzelince açılır": "Daily rewards unlock once the clock is correct"
 }

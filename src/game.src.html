@@ -950,12 +950,15 @@ function setLang(l,save){
 new MutationObserver(ms=>{for(const m of ms){
   if(m.type==='characterData')trText(m.target);else if(m.type==='attributes')trAttr(m.target,m.attributeName);else m.addedNodes.forEach(trTree);}})
   .observe(document.body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['placeholder','title','aria-label']});
+// clock guard: the latest device time ever seen is saved; if the clock is set back, date-based rewards wait until real time catches up
+let clockMax=0;
+function clockOk(){const n=Date.now();if(n>clockMax)clockMax=n;return n>=clockMax-6e5;} // 10 min slack for network time corrections
 let SHOP={noAds:false,lives:0,shield:0,time:0,starter:false,captainN:0,adDay:'',adN:0,tok:[],vipUntil:0,vipStart:0,vipPer:-1},LSTARS={},REPLAY=null,lvCombo=0,mass=0,swallowed=0,bestLevel=1,seen={},DM={date:'',list:[],bonus:false},DAILY={n:0,score:0,grid:'',combo:0,perf:0},sprintBest=0;
-function saveG(){try{localStorage.setItem(SK,JSON.stringify({stars,diamonds,bestScore,totalGames,totalCombos,ach:[...unlockedAch],lb:localLB,lastLogin,loginStreak,rescueWins,playerName,playerAvatar,savedLevel,savedScore,set:SET,mass,swallowed,bestLevel,seen,dm:DM,daily:DAILY,sprintBest,ls:LSTARS,shop:SHOP}));}catch(e){}}
+function saveG(){try{localStorage.setItem(SK,JSON.stringify({stars,diamonds,bestScore,totalGames,totalCombos,ach:[...unlockedAch],lb:localLB,lastLogin,loginStreak,rescueWins,playerName,playerAvatar,savedLevel,savedScore,set:SET,mass,swallowed,bestLevel,seen,dm:DM,daily:DAILY,sprintBest,ls:LSTARS,shop:SHOP,tmax:Math.max(clockMax,Date.now())}));}catch(e){}}
 function loadG(){try{const d=JSON.parse(localStorage.getItem(SK)||'{}');
   stars=d.stars??250;diamonds=d.diamonds??50;bestScore=d.bestScore??0;totalGames=d.totalGames??0;totalCombos=d.totalCombos??0;
   unlockedAch=new Set(d.ach||[]);localLB=d.lb||[];lastLogin=d.lastLogin||'';loginStreak=d.loginStreak??0;
-  rescueWins=d.rescueWins??0;playerName=d.playerName||'';playerAvatar=d.playerAvatar||'🚀';savedLevel=d.savedLevel??1;savedScore=d.savedScore??0;
+  rescueWins=d.rescueWins??0;clockMax=d.tmax||0;playerName=d.playerName||'';playerAvatar=d.playerAvatar||'🚀';savedLevel=d.savedLevel??1;savedScore=d.savedScore??0;
   if(d.set)Object.assign(SET,d.set);else if(d.soundOn===false){SET.music=false;SET.sfx=false;}
   mass=d.mass??0;swallowed=d.swallowed??0;bestLevel=d.bestLevel??Math.max(1,d.savedLevel??1);seen=d.seen||{};if(d.dm&&d.dm.list)DM=d.dm;if(d.daily)DAILY=d.daily;sprintBest=d.sprintBest??0;LSTARS=d.ls||{};SHOP=Object.assign(SHOP,d.shop||{});
 }catch(e){}}
@@ -1495,6 +1498,7 @@ const MPOOL=[
 ];
 function dmRoll(){
   const today=new Date().toDateString();if(DM.date===today&&DM.list&&DM.list.length)return;
+  if(DM.list&&DM.list.length&&!clockOk())return; // keep yesterday's missions rather than hand out new ones
   let seed=7;for(const ch of today)seed=(seed*31+ch.charCodeAt(0))>>>0;const rng=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
   const pool=MPOOL.filter(m=>!m.need||bestLevel>=m.need),picks=[];while(picks.length<3&&pool.length)picks.push(pool.splice(Math.floor(rng()*pool.length),1)[0]);
   DM={date:today,bonus:false,list:picks.map(m=>({id:m.id,n:m.v[Math.floor(rng()*m.v.length)],p:0,done:false,cl:false}))};saveG();
@@ -1763,7 +1767,7 @@ const vipOn=()=>monOn()&&SHOP.vipUntil>Date.now();
 // test mode: a 30-day membership per purchase. Play mode: re-checked with Google Play at every launch (active subscriptions,
 // cancelled ones included until their paid period ends), with a 3-day offline grace
 function vipSet(until){if(SHOP.vipUntil<=Date.now()){SHOP.vipStart=Date.now();SHOP.vipPer=-1;}SHOP.vipUntil=until;saveG();vipTick();monApply();}
-function vipTick(){if(!vipOn())return;const per=Math.floor((Date.now()-SHOP.vipStart)/(30*864e5)),n=Math.min(per-SHOP.vipPer,3);if(n<=0)return;SHOP.vipPer=per;
+function vipTick(){if(!vipOn()||!clockOk())return;const per=Math.floor((Date.now()-SHOP.vipStart)/(30*864e5)),n=Math.min(per-SHOP.vipPer,3);if(n<=0)return;SHOP.vipPer=per;
   const g={};for(const k in VIP.month)g[k]=VIP.month[k]*n;grant(g,'👑 VIP AYLIK PAKET');}
 async function monInit(){
   if(window.BHS_MON_TEST)MON.mode='test';
@@ -1777,7 +1781,7 @@ async function monInit(){
 function priceOf(p){return (MON.prices[p.id]||p.price)+(p.per||'');}
 const adReady=()=>SHOP.noAds||MON.mode==='test'||!!(window.BHS_ADS&&window.BHS_ADS.rewarded);
 const adLabel=t=>(SHOP.noAds?'🎁 ':'▶ REKLAM İZLE · ')+t;
-function adLeft(){const d=new Date().toDateString();if(SHOP.adDay!==d){SHOP.adDay=d;SHOP.adN=0;}return 3-SHOP.adN;}
+function adLeft(){const d=new Date().toDateString();if(SHOP.adDay!==d&&clockOk()){SHOP.adDay=d;SHOP.adN=0;}return 3-SHOP.adN;}
 // rewarded ad → true when the reward is earned
 async function showRewarded(){
   if(SHOP.noAds)return true;if(MON.busy)return false;MON.busy=true;SND.duck(.15,1e5);
@@ -1868,6 +1872,7 @@ function missionResume(sec){hideModals();SND.duck(1,0);MIS.t=sec;misHud();gState
 // ══════════════════════════════════════════════════════
 function checkDaily(){
   const today=new Date().toDateString();if(lastLogin===today)return;
+  if(!clockOk()){if(!clockOk.warned){clockOk.warned=1;later(()=>toast('🕒','CİHAZ SAATİ GERİ ALINMIŞ','Günlük ödüller saat düzelince açılır'),600);}return;}
   const yest=new Date(Date.now()-864e5).toDateString();
   loginStreak=lastLogin===yest?loginStreak+1:1;lastLogin=today;
   const sr=Math.min(50+loginStreak*50,500),dr=Math.min(Math.floor(loginStreak/3)*5+5,50);

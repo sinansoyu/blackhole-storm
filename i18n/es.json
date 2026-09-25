@@ -555,5 +555,7 @@
 "Üyeliğin aktif": "Tu suscripción está activa",
 "Üçünü de bitir: +{n} 💎 bonus": "Completa las tres: +{n} 💎 de bonus",
 "🏆 {p} geçildi! (+{d})": "🏆 ¡Superaste a {p}! (+{d})",
-"🤝 {p} ile berabere!": "🤝 ¡Empate con {p}!"
+"🤝 {p} ile berabere!": "🤝 ¡Empate con {p}!",
+"CİHAZ SAATİ GERİ ALINMIŞ": "SE ATRASÓ EL RELOJ DEL DISPOSITIVO",
+"Günlük ödüller saat düzelince açılır": "Las recompensas diarias se desbloquean cuando la hora sea correcta"
 }
