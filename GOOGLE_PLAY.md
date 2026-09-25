@@ -22,7 +22,7 @@ ile GitHub Actions'ta otomatik üretilir; bilgisayarına Android Studio kurman g
 Varsayılan adres ve paket adı:
 
 - Site: `https://sinansoyu.github.io/blackhole-storm/`
-- Paket adı: `io.github.sinansoyu.blackholestorm` (Play'e ilk yüklemeden sonra **değiştirilemez**)
+- Paket adı: `com.liaslabs.blackholestorm` (Play'e ilk yüklemeden sonra **değiştirilemez**)
 
 ---
 
@@ -35,7 +35,7 @@ Varsayılan adres ve paket adı:
 4. Telefonda Chrome ile aç: menüde "Uygulamayı yükle" çıkmalı, uçak modunda da açılmalı.
 
 > Gizlilik politikasının adresi: `https://sinansoyu.github.io/blackhole-storm/privacy.html`.
-> Göndermeden önce `privacy.html` içindeki `[İLETİŞİM E-POSTASI]` ve `[CONTACT EMAIL]` yerine kendi e-postanı yaz.
+> Yayıncı: **Lias Labs** · iletişim: `liaslabs.games@gmail.com` (gizlilik sayfasına işlendi).
 
 ## 2. İmza anahtarını oluştur (bir kez)
 
