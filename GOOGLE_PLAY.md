@@ -99,7 +99,7 @@ Doğrulama olmadan da uygulama çalışır, sadece üstte ince bir adres çubuğ
 | Veri güvenliği | Veri **toplanmıyor** ve **paylaşılmıyor**. Skorlar, ayarlar ve kayıtlı klipler yalnızca cihazda kalır; paylaşım sadece kullanıcı "Paylaş"a bastığında telefonun paylaşım menüsüyle yapılır |
 | Kamu sağlığı, haber, finans, devlet | Hayır |
 
-6. **Uygulama içi ürünler:** Play Console → Para kazanma → Ürünler → Uygulama içi ürünler. Ürün kimlikleri, içerikleri ve önerilen fiyatlar `MONETIZATION.md` içinde. Bunun için önce Ödemeler profili (banka hesabı) oluşturulmalı.
+6. **Uygulama içi ürünler:** Play Console → Para kazanma → Ürünler → Uygulama içi ürünler. Ürün kimlikleri, içerikleri ve önerilen fiyatlar `MONETIZATION.md` içinde. `vip_monthly` aboneliği ayrıca **Abonelikler** bölümünde, aylık otomatik yenilenen bir temel planla oluşturulur. Bunun için önce Ödemeler profili (banka hesabı) oluşturulmalı.
 7. **Sürüm**: yeni bir `.aab` her zaman daha büyük bir sürüm koduyla yüklenir (adım 3).
 
 ## 6. Görseller ve lisanslar

@@ -343,6 +343,10 @@ button{font-family:inherit;}
 .offer .pr{flex:0 0 auto;text-align:right;font-family:'Orbitron',monospace;font-size:12.5px;font-weight:700;color:var(--gold);}
 .offer .pr s{display:block;font-size:10px;color:#8a90a6;font-weight:500;}
 .offer .tag,.sitem .tag{position:absolute;top:-8px;right:10px;padding:2px 7px;border-radius:8px;background:var(--red);color:#fff;font-family:'Orbitron',monospace;font-size:8.5px;letter-spacing:1px;}
+.offer.vip{border-color:rgba(255,214,120,.8);background:linear-gradient(135deg,rgba(255,214,120,.22),rgba(185,120,255,.18));box-shadow:0 0 18px rgba(255,200,90,.18);}
+.offer.vip.owned{opacity:1;}
+.subnote{margin:-2px 4px 10px;font-size:11px;line-height:1.35;color:#9aa0b6;}
+.vipline{margin-top:6px;padding:6px 8px;border-radius:10px;background:linear-gradient(90deg,rgba(255,214,120,.18),rgba(185,120,255,.14));font-family:'Orbitron',monospace;font-size:12px;color:#ffe6a8;}
 .offer.owned{opacity:.55;pointer-events:none;}
 .sgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
 .sitem{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;padding:12px 4px 10px;border-radius:14px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.035);color:#fff;cursor:pointer;}
@@ -509,14 +513,14 @@ button{font-family:inherit;}
    <button class="icb" id="setBtn" aria-label="Ayarlar">⚙️</button>
   </div>
   <div class="logo mlogo">BLACKHOLE STORM</div>
-  <div class="wallet"><span>⭐ <b id="menuStars">0</b></span><span>💎 <b id="menuDia">0</b></span></div>
+  <div class="wallet"><span>⭐ <b id="menuStars">0</b></span><span>💎 <b id="menuDia">0</b></span><span id="menuVip" hidden style="color:#ffe6a8;border-color:rgba(255,214,120,.5);">👑 VIP</span></div>
   <div class="evo" id="evoBox"></div>
   <div class="banner" id="contBanner" style="display:none"><div class="s" id="contText"></div></div>
   <div class="box" id="dailyPrev" style="display:none;"></div>
   <button class="btn big play" id="startBtn">OYNA</button>
   <div class="mseg"><button class="mode on" id="modeC">🪐 KLASİK</button><button class="mode" id="modeS">☠️ HAYATTA KAL</button></div>
   <div class="mdesc" id="modeDesc" hidden></div>
-  <button class="ribbon mon" id="starterRib"><b>🎁</b><span><b>BAŞLANGIÇ PAKETİ</b><br>150 💎 · 1.500 ⭐ · 5 yedek can · 3 kalkan</span><em>%70</em></button>
+  <button class="ribbon mon" id="starterRib"><b>🎁</b><span><b>BAŞLANGIÇ PAKETİ</b><br>300 💎 · 3.000 ⭐ · 10 can · 5 kalkan · 3 ⏱</span><em>%75</em></button>
   <button class="mapc" id="mapBtn"><span class="k">🗺 SEVİYE HARİTASI</span><span class="t" id="mapTxt"></span><canvas id="miniMap" width="168" height="132"></canvas></button>
   <div class="daily" id="dailyCard">
    <div class="t"><span id="dcTitle">📅 GÜNLÜK KOZMOS</span><b id="dcZone"></b></div>
@@ -590,7 +594,7 @@ button{font-family:inherit;}
   <div class="big-num" id="dStreak">1</div>
   <div class="box"><div class="muted" style="font-size:11px;letter-spacing:1px;">BUGÜNÜN ÖDÜLÜ</div>
    <div style="font-family:'Orbitron',monospace;font-size:24px;color:#ffe6a8;margin-top:4px;">+<span id="dStars">100</span> ⭐</div>
-   <div style="font-family:'Orbitron',monospace;font-size:17px;color:var(--cyan);">+<span id="dDia">5</span> 💎</div></div>
+   <div style="font-family:'Orbitron',monospace;font-size:17px;color:var(--cyan);">+<span id="dDia">5</span> 💎</div><div class="vipline" id="dVip" hidden>👑 VIP · +15 💎 +1 🛡 ekstra</div></div>
   <button class="btn big" id="claimBtn">AL</button>
   <div class="row mon"><button class="btn sec adbtn" id="claimAd" style="width:100%;">▶ REKLAMLA 2 KATINI AL</button></div>
  </div>
@@ -745,7 +749,7 @@ let stars=250,diamonds=50,bestScore=0,totalGames=0,totalCombos=0;
 let lastLogin='',loginStreak=0,localLB=[],unlockedAch=new Set(),achQueue=[];
 let rescueWins=0,playerName='',playerAvatar='🚀',savedLevel=1,savedScore=0;
 const SET={music:true,musicVol:.6,sfx:true,sfxVol:.9,vib:true,left:false,rec:true};
-let SHOP={noAds:false,lives:0,shield:0,time:0,starter:false,captainN:0,adDay:'',adN:0,tok:[]},LSTARS={},REPLAY=null,lvCombo=0,mass=0,swallowed=0,bestLevel=1,seen={},DM={date:'',list:[],bonus:false},DAILY={n:0,score:0,grid:'',combo:0,perf:0},sprintBest=0;
+let SHOP={noAds:false,lives:0,shield:0,time:0,starter:false,captainN:0,adDay:'',adN:0,tok:[],vipUntil:0,vipStart:0,vipPer:-1},LSTARS={},REPLAY=null,lvCombo=0,mass=0,swallowed=0,bestLevel=1,seen={},DM={date:'',list:[],bonus:false},DAILY={n:0,score:0,grid:'',combo:0,perf:0},sprintBest=0;
 function saveG(){try{localStorage.setItem(SK,JSON.stringify({stars,diamonds,bestScore,totalGames,totalCombos,ach:[...unlockedAch],lb:localLB,lastLogin,loginStreak,rescueWins,playerName,playerAvatar,savedLevel,savedScore,set:SET,mass,swallowed,bestLevel,seen,dm:DM,daily:DAILY,sprintBest,ls:LSTARS,shop:SHOP}));}catch(e){}}
 function loadG(){try{const d=JSON.parse(localStorage.getItem(SK)||'{}');
   stars=d.stars??250;diamonds=d.diamonds??50;bestScore=d.bestScore??0;totalGames=d.totalGames??0;totalCombos=d.totalCombos??0;
@@ -1535,19 +1539,28 @@ function renderGuide(tab){
 // Rules: never an ad during play; boosters are not allowed in Daily Cosmos / challenges.
 // ══════════════════════════════════════════════════════
 const IAP=[
- {id:'starter',sec:'offer',ic:'🎁',t:'BAŞLANGIÇ PAKETİ',d:'150 💎 · 1.500 ⭐ · 5 yedek can · 3 kalkan. Tek sefer.',price:'₺39,99',was:'₺129,99',tag:'%70 İNDİRİM',once:true,give:{gems:150,stars:1500,lives:5,shield:3}},
- {id:'captain',sec:'offer',cls:'cap',ic:'🧑‍🚀',t:'KAPTAN SETİ',d:'Oyunu kolaylaştırır: 5 kalkan · 5 yedek can · 3 zaman kristali · 100 💎',price:'₺69,99',tag:'KOLAYLAŞTIR',give:{shield:5,lives:5,time:3,gems:100}},
+ {id:'starter',sec:'offer',ic:'🎁',t:'BAŞLANGIÇ PAKETİ',d:'300 💎 · 3.000 ⭐ · 10 yedek can · 5 kalkan · 3 zaman kristali. Tek sefer.',price:'₺19,99',was:'₺79,99',tag:'%75 İNDİRİM',once:true,give:{gems:300,stars:3000,lives:10,shield:5,time:3}},
+ {id:'vip_monthly',sec:'offer',cls:'vip',ic:'👑',t:'VIP KULÜP · AYLIK',d:'Her günlük girişte ekstra +15 💎 +1 🛡 · Her ay otomatik paket: 300 💎 · 3.000 ⭐ · 5 kalkan · 5 yedek can · 3 zaman kristali',price:'₺39,99',per:'/ay',tag:'EN KÂRLI',sub:true},
+ {id:'captain',sec:'offer',cls:'cap',ic:'🧑‍🚀',t:'KAPTAN SETİ',d:'Oyunu kolaylaştırır: 5 kalkan · 5 yedek can · 3 zaman kristali · 100 💎',price:'₺29,99',tag:'KOLAYLAŞTIR',give:{shield:5,lives:5,time:3,gems:100}},
  {id:'no_ads',sec:'offer',cls:'noad',ic:'🚫',t:'REKLAMSIZ OYNA',d:'Araya giren reklamlar tamamen kalkar; reklamlı ödüller reklam izlemeden anında gelir. Tek sefer, kalıcı.',price:'₺99,99',once:true,perm:true},
- {id:'gems_s',sec:'gems',ic:'💎',t:'60',d:'Avuç',price:'₺29,99',give:{gems:60}},
- {id:'gems_m',sec:'gems',ic:'💎',t:'200',d:'Kese · +%25',price:'₺79,99',tag:'POPÜLER',give:{gems:200}},
- {id:'gems_l',sec:'gems',ic:'💎',t:'550',d:'Sandık · +%40',price:'₺179,99',tag:'EN İYİ',give:{gems:550}},
- {id:'stars_pack',sec:'packs',ic:'⭐',t:'2.000',d:'Yıldız yığını',price:'₺24,99',give:{stars:2000}},
- {id:'lives_pack',sec:'packs',ic:'❤️',t:'10',d:'Yedek can',price:'₺34,99',give:{lives:10}},
- {id:'time_pack',sec:'packs',ic:'⏱',t:'5',d:'Zaman kristali',price:'₺24,99',give:{time:5}}];
+ {id:'gems_s',sec:'gems',ic:'💎',t:'80',d:'Avuç',price:'₺9,99',give:{gems:80}},
+ {id:'gems_m',sec:'gems',ic:'💎',t:'250',d:'Kese · +%25',price:'₺24,99',tag:'POPÜLER',give:{gems:250}},
+ {id:'gems_l',sec:'gems',ic:'💎',t:'700',d:'Sandık · +%75',price:'₺49,99',tag:'EN İYİ',give:{gems:700}},
+ {id:'stars_pack',sec:'packs',ic:'⭐',t:'2.000',d:'Yıldız yığını',price:'₺12,99',give:{stars:2000}},
+ {id:'lives_pack',sec:'packs',ic:'❤️',t:'10',d:'Yedek can',price:'₺19,99',give:{lives:10}},
+ {id:'time_pack',sec:'packs',ic:'⏱',t:'5',d:'Zaman kristali',price:'₺9,99',give:{time:5}}];
+// VIP subscription: an extra reward with every daily bonus, and one reward pack per 30 days of membership
+const VIP={daily:{gems:15,shield:1},month:{gems:300,stars:3000,shield:5,lives:5,time:3}};
 const GEM_ITEMS=[{k:'shield',ic:'🛡',t:'Kalkan',d:'Bir can kaybını önler',cost:30},{k:'lives',ic:'❤️',t:'Yedek can',d:'Canın bitince devam',cost:25},{k:'time',ic:'⏱',t:'Zaman kristali',d:'Eve Dönüş +15 sn',cost:20},{k:'stars',ic:'⭐',t:'500 yıldız',d:'Devam için',cost:40,n:500}];
 const MON={mode:'off',svc:null,prices:{},busy:false,lastInter:0,winsSinceInter:0};
 const monOn=()=>MON.mode!=='off';
-function monApply(){const on=monOn();document.querySelectorAll('.mon').forEach(e=>e.hidden=!on);if(on){$('starterRib').hidden=SHOP.starter||bestLevel<3;}}
+function monApply(){const on=monOn();document.querySelectorAll('.mon').forEach(e=>e.hidden=!on);$('menuVip').hidden=$('dVip').hidden=!vipOn();if(on){$('starterRib').hidden=SHOP.starter||bestLevel<3;}}
+const vipOn=()=>monOn()&&SHOP.vipUntil>Date.now();
+// test mode: a 30-day membership per purchase. Play mode: re-checked with Google Play at every launch (active subscriptions,
+// cancelled ones included until their paid period ends), with a 3-day offline grace
+function vipSet(until){if(SHOP.vipUntil<=Date.now()){SHOP.vipStart=Date.now();SHOP.vipPer=-1;}SHOP.vipUntil=until;saveG();vipTick();monApply();}
+function vipTick(){if(!vipOn())return;const per=Math.floor((Date.now()-SHOP.vipStart)/(30*864e5)),n=Math.min(per-SHOP.vipPer,3);if(n<=0)return;SHOP.vipPer=per;
+  const g={};for(const k in VIP.month)g[k]=VIP.month[k]*n;grant(g,'👑 VIP AYLIK PAKET');}
 async function monInit(){
   if(window.BHS_MON_TEST)MON.mode='test';
   else if('getDigitalGoodsService' in window){
@@ -1555,9 +1568,9 @@ async function monInit(){
       if(svc){MON.svc=svc;MON.mode='play';
         try{for(const x of await svc.getDetails(IAP.map(p=>p.id)))MON.prices[x.itemId]=new Intl.NumberFormat('tr-TR',{style:'currency',currency:x.price.currency}).format(+x.price.value);}catch(e){}
         restorePurchases(true);}}catch(e){}}
-  monApply();
+  monApply();vipTick();
 }
-function priceOf(p){return MON.prices[p.id]||p.price;}
+function priceOf(p){return (MON.prices[p.id]||p.price)+(p.per||'');}
 const adReady=()=>SHOP.noAds||MON.mode==='test'||!!(window.BHS_ADS&&window.BHS_ADS.rewarded);
 const adLabel=t=>(SHOP.noAds?'🎁 ':'▶ REKLAM İZLE · ')+t;
 function adLeft(){const d=new Date().toDateString();if(SHOP.adDay!==d){SHOP.adDay=d;SHOP.adN=0;}return 3-SHOP.adN;}
@@ -1583,10 +1596,11 @@ function grant(g,src){if(!g)return;stars+=g.stars||0;diamonds+=g.gems||0;SHOP.li
   const parts=[];if(g.gems)parts.push(`+${g.gems} 💎`);if(g.stars)parts.push(`+${g.stars.toLocaleString('tr-TR')} ⭐`);if(g.lives)parts.push(`+${g.lives} ❤️`);if(g.shield)parts.push(`+${g.shield} 🛡`);if(g.time)parts.push(`+${g.time} ⏱`);
   toast('🎁',src||'ALINDI',parts.join('  '));}
 function toast(i,t,d){$('tI').textContent=i;$('tT').textContent=t;$('tD').textContent=d;const e=$('toast');e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),2600);}
-function owned(p){return (p.id==='no_ads'&&SHOP.noAds)||(p.id==='starter'&&SHOP.starter);}
+function owned(p){return (p.id==='no_ads'&&SHOP.noAds)||(p.id==='starter'&&SHOP.starter)||(p.sub&&vipOn());}
 function applyPurchase(p,tok){
   if(tok){if(SHOP.tok.includes(tok))return false;SHOP.tok.push(tok);if(SHOP.tok.length>60)SHOP.tok.shift();}
   if(p.id==='no_ads'){SHOP.noAds=true;saveG();toast('🚫','REKLAMSIZ','Teşekkürler! Artık reklam yok.');}
+  else if(p.sub)vipSet(Date.now()+(MON.mode==='test'?30:3)*864e5);
   else{if(p.id==='starter')SHOP.starter=true;grant(p.give,p.t);}
   monApply();renderShop();return true;
 }
@@ -1596,7 +1610,7 @@ async function buy(id){
   if(MON.mode!=='play')return;MON.busy=true;
   try{const req=new PaymentRequest([{supportedMethods:'https://play.google.com/billing',data:{sku:p.id}}]);
     const res=await req.show();const tok=res.details&&res.details.purchaseToken;
-    if(tok){applyPurchase(p,tok);if(!p.once&&MON.svc.consume)await MON.svc.consume(tok);}
+    if(tok){applyPurchase(p,tok);if(!p.once&&!p.sub&&MON.svc.consume)await MON.svc.consume(tok);}
     await res.complete('success');
   }catch(e){if(!(e&&e.name==='AbortError'))toast('⚠️','SATIN ALMA','Tamamlanamadı, ücret alınmadı.');}
   finally{MON.busy=false;}
@@ -1606,16 +1620,18 @@ function fakePay(p){return new Promise(res=>{$('payT').textContent=p.t;$('payD')
 // purchases made on another device, or granted but not yet consumed (app closed mid-purchase)
 async function restorePurchases(silent){
   if(MON.mode!=='play'||!MON.svc)return;
-  try{let n=0;for(const pu of await MON.svc.listPurchases()){const p=IAP.find(x=>x.id===pu.itemId);if(!p)continue;
-      if(p.once){if(!owned(p)){applyPurchase(p,pu.purchaseToken);n++;}}
+  try{let n=0,vip=false;for(const pu of await MON.svc.listPurchases()){const p=IAP.find(x=>x.id===pu.itemId);if(!p)continue;
+      if(p.sub){vip=true;vipSet(Date.now()+3*864e5);}
+      else if(p.once){if(!owned(p)){applyPurchase(p,pu.purchaseToken);n++;}}
       else if(applyPurchase(p,pu.purchaseToken)){n++;try{await MON.svc.consume(pu.purchaseToken);}catch(e){}}}
+    if(!vip&&SHOP.vipUntil){SHOP.vipUntil=0;saveG();monApply();}
     if(!silent)toast('🔄','GERİ YÜKLEME',n?`${n} satın alma geri yüklendi`:'Geri yüklenecek satın alma yok');}catch(e){if(!silent)toast('⚠️','GERİ YÜKLEME','Google Play\'e ulaşılamadı');}
 }
 function openShop(){if(!monOn())return;renderShop();$('sShop').classList.add('on');sfx('click',{vol:.4});}
 function renderShop(){
   if(!$('sShop'))return;$('shopTest').hidden=MON.mode!=='test';
-  $('shopInv').innerHTML=`<span>⭐ ${stars.toLocaleString('tr-TR')}</span><span>💎 ${diamonds}</span><span>❤️ ${SHOP.lives}</span><span>🛡 ${SHOP.shield}</span><span>⏱ ${SHOP.time}</span>${SHOP.noAds?'<span>🚫 reklamsız</span>':''}`;
-  $('shopOffers').innerHTML=IAP.filter(p=>p.sec==='offer').map(p=>`<button class="offer ${p.cls||''} ${owned(p)?'owned':''}" data-buy="${p.id}">${p.tag&&!owned(p)?`<span class="tag">${p.tag}</span>`:''}<div class="ic">${p.ic}</div><div class="tx"><b>${p.t}</b><small>${p.d}</small></div><div class="pr">${owned(p)?'SAHİPSİN ✓':`${p.was?`<s>${p.was}</s>`:''}${priceOf(p)}`}</div></button>`).join('');
+  $('shopInv').innerHTML=`<span>⭐ ${stars.toLocaleString('tr-TR')}</span><span>💎 ${diamonds}</span><span>❤️ ${SHOP.lives}</span><span>🛡 ${SHOP.shield}</span><span>⏱ ${SHOP.time}</span>${SHOP.noAds?'<span>🚫 reklamsız</span>':''}${vipOn()?'<span>👑 VIP</span>':''}`;
+  $('shopOffers').innerHTML=IAP.filter(p=>p.sec==='offer').map(p=>`<button class="offer ${p.cls||''} ${owned(p)?'owned':''}" data-buy="${p.id}">${p.tag&&!owned(p)?`<span class="tag">${p.tag}</span>`:''}<div class="ic">${p.ic}</div><div class="tx"><b>${p.t}</b><small>${p.d}</small></div><div class="pr">${owned(p)?(p.sub?'AKTİF ✓':'SAHİPSİN ✓'):`${p.was?`<s>${p.was}</s>`:''}${priceOf(p)}`}</div></button>${p.sub?`<div class="subnote">${vipOn()?(MON.mode==='test'?`Üyelik ${Math.ceil((SHOP.vipUntil-Date.now())/864e5)} gün daha geçerli (test). `:'Üyeliğin aktif. '):''}Aylık abonelik, her ay otomatik yenilenir. İstediğin an Google Play › Abonelikler'den iptal edebilirsin; ödediğin ayın sonuna kadar VIP kalırsın.</div>`:''}`).join('');
   const tile=p=>`<button class="sitem" data-buy="${p.id}">${p.tag?`<span class="tag">${p.tag}</span>`:''}<div class="ic">${p.ic}</div><b>${p.t}</b><small>${p.d}</small><div class="pr">${priceOf(p)}</div></button>`;
   $('shopGems').innerHTML=IAP.filter(p=>p.sec==='gems').map(tile).join('');
   $('shopPacks').innerHTML=IAP.filter(p=>p.sec==='packs').map(tile).join('');
@@ -1652,11 +1668,12 @@ function checkDaily(){
   loginStreak=lastLogin===yest?loginStreak+1:1;lastLogin=today;
   const sr=Math.min(50+loginStreak*50,500),dr=Math.min(Math.floor(loginStreak/3)*5+5,50);
   $('dStreak').textContent=loginStreak;$('dStars').textContent=sr;$('dDia').textContent=dr;
-  const claim=k=>{SND.resume();sfx('daily',{vol:.6,rev:.3});stars+=sr*k;diamonds+=dr*k;saveG();updateUI();$('menuStars').textContent=stars;$('menuDia').textContent=diamonds;$('sDaily').classList.remove('on');$('dailyPrev').style.display='none';};
+  const vip=vipOn();$('dVip').hidden=!vip;
+  const claim=k=>{SND.resume();sfx('daily',{vol:.6,rev:.3});stars+=sr*k;diamonds+=dr*k;if(vipOn())grant(VIP.daily,'👑 VIP GÜNLÜK ÖDÜL');saveG();updateUI();$('menuStars').textContent=stars;$('menuDia').textContent=diamonds;$('sDaily').classList.remove('on');$('dailyPrev').style.display='none';};
   $('claimBtn').onclick=()=>claim(1);$('claimAd').textContent=SHOP.noAds?'🎁 2 KATINI AL':'▶ REKLAMLA 2 KATINI AL';$('claimAd').parentNode.hidden=!monOn()||!adReady();
   $('claimAd').onclick=async()=>{if(await showRewarded())claim(2);};
   $('dailyPrev').style.display='block';
-  $('dailyPrev').innerHTML=`<div style="font-family:'Orbitron',monospace;color:var(--gold);font-size:11px;letter-spacing:1px;">🔥 GÜNLÜK BONUS HAZIR</div><div class="muted">${loginStreak} günlük seri · +${sr} ⭐ +${dr} 💎</div>`;
+  $('dailyPrev').innerHTML=`<div style="font-family:'Orbitron',monospace;color:var(--gold);font-size:11px;letter-spacing:1px;">🔥 GÜNLÜK BONUS HAZIR</div><div class="muted">${loginStreak} günlük seri · +${sr} ⭐ +${dr} 💎${vip?' · 👑 +15 💎 +1 🛡':''}</div>`;
   $('sDaily').classList.add('on');saveG();
 }
 

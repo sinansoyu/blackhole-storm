@@ -12,15 +12,31 @@ her ülke için değiştirilebilir, oyun gerçek fiyatı Google Play'den okur.
 
 | Ürün kimliği | Ad | İçerik | Tür (oyunun davranışı) | Önerilen fiyat |
 |---|---|---|---|---|
-| `starter` | Başlangıç Paketi | 150 💎 · 1.500 ⭐ · 5 yedek can · 3 kalkan | Tek sefer (tüketilmez) | ₺39,99 |
-| `captain` | Kaptan Seti | 5 kalkan · 5 yedek can · 3 zaman kristali · 100 💎 | Tekrar alınabilir | ₺69,99 |
+| `starter` | Başlangıç Paketi | 300 💎 · 3.000 ⭐ · 10 yedek can · 5 kalkan · 3 zaman kristali | Tek sefer (tüketilmez) | ₺19,99 |
+| `captain` | Kaptan Seti | 5 kalkan · 5 yedek can · 3 zaman kristali · 100 💎 | Tekrar alınabilir | ₺29,99 |
 | `no_ads` | Reklamsız Oyna | Araya giren reklamlar kalkar, reklamlı ödüller reklamsız gelir | Tek sefer, kalıcı | ₺99,99 |
-| `gems_s` | Avuç Elmas | 60 💎 | Tekrar alınabilir | ₺29,99 |
-| `gems_m` | Kese Elmas | 200 💎 (+%25) | Tekrar alınabilir | ₺79,99 |
-| `gems_l` | Sandık Elmas | 550 💎 (+%40) | Tekrar alınabilir | ₺179,99 |
-| `stars_pack` | Yıldız Yığını | 2.000 ⭐ | Tekrar alınabilir | ₺24,99 |
-| `lives_pack` | Can Deposu | 10 yedek can | Tekrar alınabilir | ₺34,99 |
-| `time_pack` | Zaman Kristalleri | 5 × (+15 sn) | Tekrar alınabilir | ₺24,99 |
+| `gems_s` | Avuç Elmas | 80 💎 | Tekrar alınabilir | ₺9,99 |
+| `gems_m` | Kese Elmas | 250 💎 (+%25) | Tekrar alınabilir | ₺24,99 |
+| `gems_l` | Sandık Elmas | 700 💎 (+%75) | Tekrar alınabilir | ₺49,99 |
+| `stars_pack` | Yıldız Yığını | 2.000 ⭐ | Tekrar alınabilir | ₺12,99 |
+| `lives_pack` | Can Deposu | 10 yedek can | Tekrar alınabilir | ₺19,99 |
+| `time_pack` | Zaman Kristalleri | 5 × (+15 sn) | Tekrar alınabilir | ₺9,99 |
+
+Başlangıç paketinde üstü çizili gösterilen ₺79,99, içeriğin elmas paketleriyle alınmasının yaklaşık karşılığıdır.
+
+### Abonelik (Play Console → Ürünler → Abonelikler)
+
+| Ürün kimliği | Ad | Temel plan | Önerilen fiyat |
+|---|---|---|---|
+| `vip_monthly` | VIP Kulüp | Aylık, otomatik yenilenen (`monthly`) | ₺39,99 / ay |
+
+- **Her günlük girişte ekstra:** Günlük bonus alınırken +15 💎 +1 🛡 daha.
+- **Aylık paket:** Abone olduğu anda ve üyeliğin her 30 gününde bir otomatik: 300 💎 · 3.000 ⭐ · 5 kalkan · 5 yedek can · 3 zaman kristali.
+  Oyuncu birkaç ay oyunu açmazsa açtığında kaçırdığı paketler (en fazla 3) birlikte gelir.
+- Oyun her açılışta Google Play'e aktif abonelik olup olmadığını sorar. İptal edilen abonelik ödenen dönemin sonuna kadar
+  aktif sayılır (bu Google Play'in kuralı). İnternetsiz açılışlarda 3 gün tolerans var.
+- Mağazada abonelik kartının altında fiyat, dönem, otomatik yenileme ve iptal yolu yazıyor (Play abonelik politikası bunu istiyor).
+- İstersen Play Console'da temel plana **ücretsiz deneme** (ör. 3 gün) veya ilk ay indirimi eklenebilir; oyunda değişiklik gerekmez.
 
 Elmasla alınanlar (gerçek para yok): 🛡 kalkan 30 💎 · ❤️ yedek can 25 💎 · ⏱ zaman kristali 20 💎 · 500 ⭐ 40 💎.
 
@@ -34,7 +50,8 @@ Elmasla alınanlar (gerçek para yok): 🛡 kalkan 30 💎 · ❤️ yedek can 2
 
 | Yer | Ne |
 |---|---|
-| Ana menü | 🛒 Mağaza düğmesi; 3. seviyeden sonra Başlangıç Paketi şeridi (alınınca kaybolur) |
+| Ana menü | 🛒 Mağaza düğmesi; 3. seviyeden sonra Başlangıç Paketi şeridi (alınınca kaybolur); VIP üyelerde 👑 VIP rozeti |
+| Günlük bonus penceresi | VIP üyelerde "👑 VIP · +15 💎 +1 🛡 ekstra" satırı |
 | Duraklatma menüsü | 🛒 Mağaza |
 | Canın bitince | **▶ Reklam izle · 1 canla devam** (seviye başına 1 kez), **❤️ Yedek can kullan**, 100 ⭐ ile devam |
 | Seviye sonu | **▶ Reklam izle · +25 ⭐** |
@@ -47,7 +64,8 @@ Elmasla alınanlar (gerçek para yok): 🛡 kalkan 30 💎 · ❤️ yedek can 2
 
 - **Satın almalar:** Google Play Billing, Digital Goods API ile bağlandı (`android/twa-manifest.json` → `playBilling`).
   Android paketi bu ayarla derlendi (izin: `com.android.vending.BILLING`, en düşük Android 6.0).
-  Kalıcı ürünler (`starter`, `no_ads`) cihaz değişince **Satın alımları geri yükle** ile geri gelir.
+  Kalıcı ürünler (`starter`, `no_ads`) ve aktif VIP aboneliği cihaz değişince **Satın alımları geri yükle** ile geri gelir.
+  Elmas, yıldız ve eşya bakiyesi ise cihazda durur (hesap sistemi yok); uygulama silinirse gider.
 - **Reklamlar:** Oyun, reklamları `window.BHS_ADS` adında bir bağlantı üzerinden istiyor
   (`rewarded()` ve `interstitial()`). Bu bağlantıyı sağlayacak reklam ağı **henüz seçilmedi** (aşağıya bak).
   Seçilene kadar Play sürümünde reklam düğmeleri gizli kalır; satın almalar çalışır.
@@ -88,3 +106,11 @@ Uygulama mağazası ve reklam gelirleri Türkiye'de vergiye tabidir. Mobil uygul
 şartıyla banka stopaj keser ve belirli bir yıllık tutara kadar ayrıca beyanname gerekmez. Şartlar ve güncel tutarlar
 değiştiği için başlamadan önce bir **mali müşavire** danış. Google'ın ABD kaynaklı satışlar için istediği vergi formunu
 (W-8BEN) Play Console → Ödemeler profili'nden doldurmayı unutma.
+
+## Hile ve güvenlik
+
+- Bakiyeler (elmas, yıldız, eşyalar) telefonda saklanıyor. Bilgili biri kendi telefonunda bunları elle değiştirebilir.
+  Oyun tek kişilik olduğu için bu yalnızca onun kendi oyununu etkiler; başkasına zarar vermez, senden para almaz.
+- Ücretli ürünler (reklamsız, VIP) Google Play'e sorularak açılır. Web sürümünde kayıt dosyası değiştirilse bile mağaza ve VIP açılmaz.
+- İleride çevrimiçi sıralama veya düello eklenirse satın almaları ve skorları bir sunucuda doğrulamak gerekir
+  (Google Play Developer API ile satın alma doğrulama). Şu an sunucu olmadığı için gerek yok.
