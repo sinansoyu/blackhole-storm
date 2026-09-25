@@ -27,13 +27,16 @@ jobs:
           java-version: '17'
 
       - uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools'  # the default also asks for the retired 'tools' package, which no longer installs
 
       - name: Android SDK paketleri
         run: |
           sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.1.0"
-          # Bubblewrap looks for the SDK tools in <sdk>/bin (older layout)
-          ln -sfn "$ANDROID_HOME/cmdline-tools/latest/bin" "$ANDROID_HOME/bin"
-          ln -sfn "$ANDROID_HOME/cmdline-tools/latest/lib" "$ANDROID_HOME/lib"
+          # Bubblewrap looks for the SDK tools in <sdk>/bin (older layout); link whichever cmdline-tools is on PATH
+          TOOLS="$(dirname "$(dirname "$(command -v sdkmanager)")")"
+          ln -sfn "$TOOLS/bin" "$ANDROID_HOME/bin"
+          ln -sfn "$TOOLS/lib" "$ANDROID_HOME/lib"
 
       - uses: actions/setup-node@v4
         with:
