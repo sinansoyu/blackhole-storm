@@ -112,5 +112,27 @@ değiştiği için başlamadan önce bir **mali müşavire** danış. Google'ın
 - Bakiyeler (elmas, yıldız, eşyalar) telefonda saklanıyor. Bilgili biri kendi telefonunda bunları elle değiştirebilir.
   Oyun tek kişilik olduğu için bu yalnızca onun kendi oyununu etkiler; başkasına zarar vermez, senden para almaz.
 - Ücretli ürünler (reklamsız, VIP) Google Play'e sorularak açılır. Web sürümünde kayıt dosyası değiştirilse bile mağaza ve VIP açılmaz.
-- İleride çevrimiçi sıralama veya düello eklenirse satın almaları ve skorları bir sunucuda doğrulamak gerekir
-  (Google Play Developer API ile satın alma doğrulama). Şu an sunucu olmadığı için gerek yok.
+- Cihaz saati geri alınırsa günlük bonus, günlük görevler, günlük reklam hakkı ve VIP paketi saat gerçek zamana
+  yetişene kadar kilitli kalır (oyun gördüğü en ileri saati kaydeder).
+
+## Satın alma onayı (yayından önce ŞART)
+
+Google Play, satın almanın **3 gün içinde onaylanmasını (acknowledge)** ister; onaylanmazsa para kullanıcıya iade
+edilir ve ürün geri alınır. Kurallar:
+
+| Ürün | Oyun şu an ne yapıyor | Eksik |
+|---|---|---|
+| Elmas/yıldız paketleri (tüketilebilir) | `consume()` çağırıyor; bu Google tarafından onay sayılır. Başarısız olursa açılışta tekrar dener. | Yok |
+| Başlangıç paketi, Reklamsız (tek seferlik) | Ürünü veriyor ama onaylamıyor | Sunucu tarafı onay |
+| VIP (abonelik) | Ürünü veriyor ama onaylamıyor | Sunucu tarafı onay |
+
+Tek seferlik ürünler ve abonelik, TWA'da yalnızca bir **sunucu** üzerinden (Google Play Developer API ve bir hizmet
+hesabı ile) onaylanabilir. Google aynı sunucuda satın alma jetonunun doğrulanmasını da önerir. Seçenekler:
+
+1. **Küçük bir sunucu fonksiyonu** (ör. Cloudflare Worker veya Firebase Functions, ücretsiz katman yeterli): oyun
+   jetonu gönderir, sunucu Google'a doğrulatıp onaylar, oyun ürünü ancak "onaylandı" cevabı gelince verir.
+2. **Sunucu kurulana kadar** yalnızca tüketilebilir paketleri satmak; Başlangıç paketi, Reklamsız ve VIP'i Play
+   Console'da etkinleştirmemek.
+
+Ayrıntı: https://developer.chrome.com/docs/android/trusted-web-activity/receive-payments-play-billing
+- İleride çevrimiçi sıralama veya düello eklenirse skorları da sunucuda doğrulamak gerekir.

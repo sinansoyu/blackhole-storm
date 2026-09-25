@@ -26,6 +26,13 @@ def main():
     for f in sorted(glob.glob(f'{ROOT}/i18n/*.json')):
         d = json.loads(read(f))
         langs[os.path.basename(f)[:-5]] = {k: v for k, v in d.items() if v and not k.startswith('_')}
+    # every language must carry the same keys, otherwise the missing texts would silently show in Turkish
+    if langs:
+        allk = set().union(*langs.values())
+        for l, d in langs.items():
+            miss = sorted(allk - set(d))
+            if miss:
+                print(f'WARNING: {l}.json is missing {len(miss)} translation(s):', *miss[:10], sep='\n  ')
     i18n = ('<script>window.I18N=' + json.dumps(langs, ensure_ascii=False, separators=(',', ':')).replace('</', '<\\/') + ';</script>') if langs else ''
     out = (src.replace('<!--FONT_DATA-->', read(f'{SRC}/blocks/fonts.html'))
               .replace('<!--SPRITE_DATA-->', read(f'{SRC}/blocks/sprites.html'))

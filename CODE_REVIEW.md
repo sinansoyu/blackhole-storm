@@ -38,7 +38,10 @@ Tek sayfa, çerçeve yok, sunucu yok. Oyun durumu `localStorage`'da tutulur.
 
 ## Bilinen tasarım kararları (hata sanılmasın)
 
-- Kayıt yalnızca cihazda, sunucu yok. Oyuncu yerel veriyi değiştirebilir; bu tek oyunculu bir oyunda bilinçli bir tercih. Gerçek satın alımların doğrulaması Play Billing tarafında yapılmalı (henüz bağlanmadı).
+- Kayıt yalnızca cihazda, sunucu yok. Oyuncu yerel veriyi değiştirebilir; bu tek oyunculu bir oyunda bilinçli bir tercih. `loadG` her alanı tip ve aralık kontrolünden geçirir; bozuk kayıt oyunu çökertmez.
+- Satın alma onayı (acknowledge) ve jeton doğrulaması için sunucu henüz yok; tek seferlik ürünler ve VIP bu yüzden yayında açılmayacak. Ayrıntı: `MONETIZATION.md` → "Satın alma onayı".
+- Cihaz saati geri alınınca tarihe bağlı ödüller kilitlenir (`clockOk`). Saati ileri almak yalnızca ödülü erken almayı sağlar, fazladan ödül vermez.
+- Service worker `sw.js` depoda ayrı dosya: `skipWaiting`, `clients.claim`, eski önbellek silme ve sayfa için önce ağdan yükleme zaten var.
 - `MON.mode`: web sürümünde mağaza ve reklamlar gizli (`off`); `test` kipinde sahte ödeme ve sahte reklam kullanılır; gerçek ödeme/reklam sağlayıcısı henüz takılmadı.
 - İlk 1–3. seviyeler kasıtlı olarak kolay (büyük halka, boş dokunuşa ek şans).
 - Görseller NASA kamu malı fotoğraflarından; fontlar IBM Plex (SIL OFL).
