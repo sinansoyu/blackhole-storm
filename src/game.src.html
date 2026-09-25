@@ -476,6 +476,8 @@ html[lang=ar] *{letter-spacing:0!important;}
 .me .ico{width:30px;height:30px;}
 #badge.resc{background:var(--cyan);color:#07131a;}
 #badge.surv{background:var(--red);color:#fff;}
+/* small corner buttons keep their look but get a 48px touch area (Android guideline) */
+#pauseBtn,.icb{position:relative;}#pauseBtn::after,.icb::after{content:'';position:absolute;inset:-5px;}
 </style>
 </head>
 <body>
