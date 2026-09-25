@@ -16,6 +16,8 @@ ile GitHub Actions'ta otomatik üretilir; bilgisayarına Android Studio kurman g
 | `manifest.webmanifest`, `sw.js`, `icons/` | PWA: yükleme, çevrimdışı çalışma, ikonlar |
 | `privacy.html` | Gizlilik politikası (TR + EN) |
 | `store/` | Tanıtım görseli (1024×500) ve 6 ekran görüntüsü (1080×1920) |
+| `root-site/` | `sinansoyu.github.io` deposuna kopyalanacak dosyalar (adım 4) |
+| `MONETIZATION.md` | Mağaza ürünleri, reklam yerleri, paranın hesaba geçişi |
 
 Varsayılan adres ve paket adı:
 
@@ -65,7 +67,7 @@ dosyasından doğrular. Bu dosya alan adının **kökünde** olmalı; `blackhole
 adresi `/blackhole-storm/` altında olduğu için oraya konamaz. Çözüm, tek dosyalık ikinci bir depo:
 
 1. GitHub'da `sinansoyu.github.io` adında **herkese açık** yeni bir depo oluştur.
-2. İçine iki dosya ekle:
+2. Bu depodaki `root-site/` klasörünün içeriğini oraya kopyala:
    - `.nojekyll` (boş dosya)
    - `.well-known/assetlinks.json`: `android/assetlinks.example.json` şablonunu kopyala, parmak izlerini yaz:
      - adım 2'deki **yükleme anahtarı** SHA-256'sı,
@@ -91,13 +93,14 @@ Doğrulama olmadan da uygulama çalışır, sadece üstte ince bir adres çubuğ
 |---|---|
 | Gizlilik politikası | `https://sinansoyu.github.io/blackhole-storm/privacy.html` |
 | Uygulama erişimi | Tüm işlevler giriş gerektirmeden kullanılabilir |
-| Reklamlar | Hayır, reklam yok |
-| İçerik derecelendirme | Kategori: Oyun. Şiddet, korku, kumar, cinsellik, küfür yok; kullanıcılar arası iletişim yok; uygulama içi satın alma yok. Beklenen sonuç: 3+ / Herkes |
+| Reklamlar | Reklam ağı eklenene kadar **Hayır**; eklenince **Evet** (bkz. MONETIZATION.md) |
+| İçerik derecelendirme | Kategori: Oyun. Şiddet, korku, kumar, cinsellik, küfür yok; kullanıcılar arası iletişim yok; **dijital ürün satın alma var**. Beklenen sonuç: 3+ / Herkes |
 | Hedef kitle | **13 yaş ve üzeri** önerilir (13 yaş altını seçmek "Aileler" politikasının ek şartlarını getirir) |
 | Veri güvenliği | Veri **toplanmıyor** ve **paylaşılmıyor**. Skorlar, ayarlar ve kayıtlı klipler yalnızca cihazda kalır; paylaşım sadece kullanıcı "Paylaş"a bastığında telefonun paylaşım menüsüyle yapılır |
 | Kamu sağlığı, haber, finans, devlet | Hayır |
 
-6. **Sürüm**: yeni bir `.aab` her zaman daha büyük bir sürüm koduyla yüklenir (adım 3).
+6. **Uygulama içi ürünler:** Play Console → Para kazanma → Ürünler → Uygulama içi ürünler. Ürün kimlikleri, içerikleri ve önerilen fiyatlar `MONETIZATION.md` içinde. Bunun için önce Ödemeler profili (banka hesabı) oluşturulmalı.
+7. **Sürüm**: yeni bir `.aab` her zaman daha büyük bir sürüm koduyla yüklenir (adım 3).
 
 ## 6. Görseller ve lisanslar
 
