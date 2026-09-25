@@ -211,10 +211,9 @@ button{font-family:inherit;}
 .mwho{flex:1;min-width:0;}
 .mwho b{display:block;font-family:'Orbitron',monospace;font-size:12px;letter-spacing:1px;color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .mwho small{display:block;font-size:12.5px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.mtop .wallet{margin:0;gap:5px;font-size:11px;}
-.mtop .wallet span{padding:4px 8px;}
+.mcard .wallet{margin-top:8px;}
 .icb{flex:0 0 40px;height:40px;border-radius:13px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);font-size:17px;cursor:pointer;color:#cfd4e2;padding:0;}
-.mlogo{text-align:center;font-size:24px;margin:18px 0 2px;}
+.mlogo{text-align:center;font-size:24px;margin:16px 0 0;}
 .mcard .evo{margin:10px 0 0;}
 #startBtn.play{display:block;margin-top:14px;padding:15px 10px 12px;line-height:1.2;}
 #startBtn.play small{display:block;font-family:'Rajdhani',sans-serif;font-size:13.5px;font-weight:700;letter-spacing:0;opacity:.72;margin-top:3px;}
@@ -321,6 +320,12 @@ button{font-family:inherit;}
 @keyframes plateIn{0%{opacity:0;transform:scaleX(1.6) scaleY(.1)}50%{opacity:1;transform:scaleX(.9) scaleY(1.1)}100%{transform:none}}
 @keyframes plateOut{to{opacity:0;transform:scaleY(.1)}}
 @keyframes segLost{0%{background:#fff}50%{background:#ff5a6e}100%{background:rgba(255,255,255,.12);box-shadow:none}}
+.lvst{display:flex;justify-content:center;gap:8px;margin:-4px 0 6px;font-size:34px;line-height:1;}
+.lvst span{display:inline-block;color:#ffd76a;text-shadow:0 0 18px rgba(255,200,80,.85);animation:bandStar .45s cubic-bezier(.2,1.8,.4,1) both;}
+.lvst span.no{color:rgba(255,255,255,.14);text-shadow:none;}
+.lvnext{margin:2px 0 4px;padding:8px 10px;border-radius:12px;background:rgba(63,216,232,.07);border:1px solid rgba(63,216,232,.28);font-size:13.5px;color:#bfe9f2;}
+.lvnext:empty{display:none;}
+.lvnext b{font-family:'Orbitron',monospace;font-size:9.5px;letter-spacing:1.5px;color:var(--cyan);margin-right:4px;}
 @keyframes pulseO{from{opacity:1}to{opacity:.45}}
 @keyframes tmrShake{from{transform:translateX(-1.5px) scale(1.05)}to{transform:translateX(1.5px) scale(1.12)}}
 @keyframes perfPop{0%{transform:translate(-50%,-50%) scale(0);opacity:1}35%{transform:translate(-50%,-50%) scale(1.15)}100%{transform:translate(-50%,-50%) scale(.95);opacity:0}}
@@ -408,7 +413,9 @@ button{font-family:inherit;}
   <div class="modal card" id="mLvl">
    <div class="h" id="lvlHead">SEVİYE TAMAMLANDI</div>
    <div class="big-num" id="lvlNum">1</div>
+   <div class="lvst" id="lvlStars"></div>
    <p class="muted" id="lvlMsg" style="font-size:15px;color:#dfe3ee;"></p>
+   <div class="lvnext" id="lvlNext"></div>
    <div class="row"><button class="btn big" id="nextLvl">SONRAKİ SEVİYE</button></div>
    <div class="row"><button class="btn sec" id="lvlRetry" style="display:none;width:100%;">🔄 TEKRAR DENE</button></div>
   </div>
@@ -417,10 +424,10 @@ button{font-family:inherit;}
    <div class="big-num" id="finScore" style="font-size:44px;">0</div>
    <div class="near" id="finNear"></div>
    <div style="margin:10px 0;">
-    <div class="stat"><span>Ulaşılan seviye</span><span id="finLevel">1</span></div>
+    <div class="stat"><span id="finLvLbl">Ulaşılan seviye</span><span id="finLevel">1</span></div>
     <div class="stat"><span>En iyi skor</span><span id="finBest">0</span></div>
     <div class="stat"><span>En uzun combo</span><span id="finCombo">0</span></div>
-    <div class="stat"><span>Kurtarılan mekik</span><span id="finRescue">0</span></div>
+    <div class="stat" id="finRescRow"><span>Kurtarılan mekik</span><span id="finRescue">0</span></div>
    </div>
    <div class="row"><button class="btn" id="againBtn">TEKRAR OYNA</button><button class="btn sec" id="shareBtn">SKORU KOPYALA</button></div>
    <div class="row"><button class="btn sec" id="overMenu" style="width:100%;">ANA MENÜ</button></div>
@@ -450,10 +457,10 @@ button{font-family:inherit;}
   <div class="mtop">
    <button class="mav" id="editProf" aria-label="Profili düzenle"><span id="menuAv">🚀</span></button>
    <div class="mwho"><b id="menuName"></b><small id="menuSub">Hoş geldin, kaptan</small></div>
-   <div class="wallet"><span>⭐ <b id="menuStars">0</b></span><span>💎 <b id="menuDia">0</b></span></div>
    <button class="icb" id="setBtn" aria-label="Ayarlar">⚙️</button>
   </div>
   <div class="logo mlogo">BLACKHOLE STORM</div>
+  <div class="wallet"><span>⭐ <b id="menuStars">0</b></span><span>💎 <b id="menuDia">0</b></span></div>
   <div class="evo" id="evoBox"></div>
   <div class="banner" id="contBanner" style="display:none"><div class="s" id="contText"></div></div>
   <div class="box" id="dailyPrev" style="display:none;"></div>
@@ -1259,7 +1266,12 @@ function levelStars(){return 1+(lostThisLevel?0:1)+(lvCombo>=6?1:0);}
 function recordStars(l,st){const old=LSTARS[l]|0;if(st>old){LSTARS[l]=st;saveG();}return {old,gain:Math.max(0,st-old)};}
 function starStr(n){n=Math.max(0,n|0);return '★'.repeat(n)+'☆'.repeat(3-n);}
 function totalStars(){return Object.values(LSTARS).reduce((a,v)=>a+Math.max(0,v),0);}
-function lvlButtons(replay){$('nextLvl').textContent=replay?'🗺 HARİTAYA DÖN':'SONRAKİ SEVİYE';$('lvlRetry').style.display=replay?'':'none';}
+function lvlStarsShow(n,medal){$('lvlStars').innerHTML=medal?`<span>${medal}</span>`:n<0?'':[0,1,2].map(i=>`<span class="${i<n?'':'no'}" style="animation-delay:${.15+i*.15}s">★</span>`).join('');}
+function nextTeaser(l){if(gameMode!=='classic'||REPLAY)return '';const k=levelKind(l);let t='';
+  if(k&&k.t==='boss')t=`Seviye ${l} · ${k.n} geliyor. Halkanın rengini izle.`;else if(k&&k.t==='mis')t=`Seviye ${l} · Eve Dönüş görevi: filoyu kurtar.`;else if(k&&k.t==='res')t=`Seviye ${l} · Sapan Kurtarma görevi.`;
+  else if((l-1)%10===0)t=`Seviye ${l} · yeni bölge: ${ZONES[zoneOf(l)].n}.`;else if(SPECIALS[l]&&!SPECIALS[l][2].startsWith('boss'))t=`Seviye ${l} · yeni cisim: ${SPECIALS[l][0]}.`;
+  return t?`<b>SIRADA</b>${t}`:'';}
+function lvlButtons(replay){$('lvlStars').innerHTML='';$('lvlNext').innerHTML='';$('nextLvl').textContent=replay?'🗺 HARİTAYA DÖN':'SONRAKİ SEVİYE';$('lvlRetry').style.display=replay?'':'none';}
 function startReplay(l){
   hideModals();document.querySelectorAll('.screen.on').forEach(e=>e.classList.remove('on'));
   REPLAY={level:l};gameMode='classic';SND.resume();SND.startDrone();SND.music('game');resize();startReplayLevel();
@@ -1272,8 +1284,8 @@ function replayWin(st,rec,rescue){
   const reward=rec.gain*5;if(reward){stars+=reward;saveG();}
   if(!rescue){sfx('levelup',{vol:.85,rev:.35});SND.duck(.3,2.4);for(let i=0;i<60;i++)sparks.push(new Spark(hX,hY,pick(['#ffd76a','#ffffff','#e6dcff']),rnd(0,TAU),rnd(2,7),rnd(.7,1.4),2.2));
     showWinBand(rec.gain?'YENİ YILDIZ':'TAMAMLANDI',st,false);}
-  lvlButtons(true);$('lvlHead').textContent=rec.gain?'YENİ YILDIZ!':'SEVİYE TAMAMLANDI';$('lvlNum').textContent=level;
-  $('lvlMsg').textContent=`${starStr(st)}${rec.old?` · önceki ${starStr(rec.old)}`:''}${reward?` · +${reward} ⭐`:''}`;
+  lvlButtons(true);lvlStarsShow(st);$('lvlHead').textContent=rec.gain?'YENİ YILDIZ!':'SEVİYE TAMAMLANDI';$('lvlNum').textContent=level;
+  $('lvlMsg').textContent=`${rec.old?`Önceki: ${starStr(rec.old)}`:'İlk yıldızların'}${reward?` · +${reward} ⭐`:''}`;
   later(()=>{showModal('mLvl');gState='menu';updateUI();},rescue?0:1500);
 }
 function endReplay(toMap){
@@ -1773,7 +1785,7 @@ function misTick(dt){
   }
 }
 function misEnd(ok){
-  const M=MIS;astroHide();holeK=1;gState='menu';SND.tension(false);LSTARS[level]=ok?3:-1;lvlButtons(false);
+  const M=MIS;astroHide();holeK=1;gState='menu';SND.tension(false);LSTARS[level]=ok?3:-1;lvlButtons(false);lvlStarsShow(0,ok?'🏅':'💔');$('lvlNext').innerHTML=nextTeaser(level+1);
   if(totalScore>bestScore){bestScore=totalScore;saveG();}
   $('lvlHead').textContent=ok?'GÖREV BAŞARILI':'GÖREV BAŞARISIZ';$('lvlNum').textContent=level;
   $('lvlMsg').textContent=ok?`Filo eve döndü · +${M.bonus.toLocaleString('tr-TR')} puan · +30 ⭐`:`Filo eve dönemedi (${M.got}/${M.need} kapsül). Bu görev tekrarlanmaz; yolculuk devam ediyor.`;
@@ -2082,7 +2094,7 @@ function drawRescue(){
   ctx.fillStyle='#e6fffa';ctx.beginPath();ctx.arc(0,0,3+Math.sin(t*6),0,TAU);ctx.fill();ctx.globalCompositeOperation='source-over';
   ctx.setLineDash([3,6]);ctx.lineDashOffset=t*10;ctx.strokeStyle='rgba(0,0,0,.45)';ctx.lineWidth=3.2;ctx.beginPath();ctx.arc(0,0,zone.r*TRACTOR,0,TAU);ctx.stroke();
   ctx.strokeStyle=`rgba(${col},${hit?.85:.5})`;ctx.lineWidth=1.4;ctx.beginPath();ctx.arc(0,0,zone.r*TRACTOR,0,TAU);ctx.stroke();ctx.setLineDash([]);
-  ctx.font='700 10px Orbitron,monospace';ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='rgba(0,0,0,.6)';ctx.strokeText('İSTASYON',0,-zone.r-8);ctx.fillStyle='#bff6ff';ctx.fillText('İSTASYON',0,-zone.r-8);ctx.restore();
+  ctx.font='700 10px Orbitron,monospace';ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='rgba(0,0,0,.6)';ctx.textBaseline='top';ctx.strokeText('İSTASYON',0,zone.r+8);ctx.fillStyle='#bff6ff';ctx.fillText('İSTASYON',0,zone.r+8);ctx.textBaseline='alphabetic';ctx.restore();
   if(!ship)return;
   if(ship.st==='orbit'){
     // orbit guide
@@ -2331,7 +2343,7 @@ function levelSuccess(){
   for(let i=0;i<80;i++)sparks.push(new Spark(hX,hY,pick(['#ffd76a','#ffffff','#e6dcff','#8fe9ff']),rnd(0,TAU),rnd(2,7),rnd(.7,1.4),2.2));
   showWinBand('TAMAMLANDI',st,lifeUp);
   if(lifeUp)later(()=>flyHeartTo(lives,$('wbLf'),()=>{lives++;updateUI();heartFx(lives-1,'pop');sfx('coin',{vol:.5,rate:1.3});}),1500);
-  lvlButtons(false);$('lvlHead').textContent='SEVİYE TAMAMLANDI';$('lvlNum').textContent=level;$('lvlMsg').textContent=`${starStr(st)} · ${totalScore.toLocaleString('tr-TR')} toplam puan · +5 ⭐${level%5===0?' +3 💎':''}${lifeUp?' · +1 can':''}`;
+  lvlButtons(false);lvlStarsShow(st);$('lvlNext').innerHTML=nextTeaser(level+1);$('lvlHead').textContent='SEVİYE TAMAMLANDI';$('lvlNum').textContent=level;$('lvlMsg').textContent=`${totalScore.toLocaleString('tr-TR')} toplam puan · +5 ⭐${level%5===0?' +3 💎':''}${lifeUp?' · +1 can':''}`;
   later(()=>{showModal('mLvl');gState='menu';updateUI();},2900);checkAchs();
 }
 // Classic never throws you back to level 1: out of lives you can pay to continue, replay the level for free, or leave with progress saved.
@@ -2346,7 +2358,7 @@ function gameOver(){
   dmEvent('score',totalScore,true);
   $('finNear').textContent=totalScore>runStartBest&&totalScore>0?'🏆 YENİ REKOR!':runStartBest>0?`Rekoruna ${(runStartBest-totalScore).toLocaleString('tr-TR')} puan kaldı`:'';
   if(totalScore>bestScore)bestScore=totalScore;totalGames++;addLB(totalScore);if(gameMode==='classic'){savedLevel=1;savedScore=0;}saveG();
-  $('finScore').textContent=totalScore.toLocaleString('tr-TR');$('finLevel').textContent=gameMode==='survival'?'S'+effLevel():level;
+  $('finScore').textContent=totalScore.toLocaleString('tr-TR');const sv=gameMode==='survival';$('finLvLbl').textContent=sv?'Ulaşılan hız':'Ulaşılan seviye';$('finLevel').textContent=sv?`${effLevel()} · ${Math.floor(survTime/60)}:${String(Math.floor(survTime%60)).padStart(2,'0')}`:level;$('finRescRow').style.display=sv?'none':'';
   $('finBest').textContent=bestScore.toLocaleString('tr-TR');$('finCombo').textContent=maxCombo;$('finRescue').textContent=rescueOK;
   showModal('mOver');sfx('gameover',{vol:.8,rev:.4});gState='over';SND.music('menu');
 }
@@ -2501,7 +2513,7 @@ async function shareClip(){
 // PAUSE
 // ══════════════════════════════════════════════════════
 let pausedFrom='playing';
-function pauseGame(){if(gState==='playing'||gState==='rescue_play'){pausedFrom=gState;gState='paused';$('pRestartL').textContent=MIS?'Görevden vazgeç':REPLAY?'Seviyeyi yeniden başlat':gameMode==='classic'?(isRescueLevel?'Görevi yeniden başlat':'Seviyeyi yeniden başlat'):gameMode==='sprint'?'60 saniyeyi yeniden başlat':'Yeniden başla';if(REC.mr&&REC.mr.state==='recording')try{REC.mr.pause();}catch(e){}$('pauseBtn').textContent='▶';syncSettingsUI();$('sPause').classList.add('on');SND.setDrone(.05);SND.duck(.35,1e5);}}
+function pauseGame(){if(gState==='playing'||gState==='rescue_play'){pausedFrom=gState;gState='paused';$('pRestartL').textContent=MIS?'Görevden vazgeç (başarısız sayılır)':REPLAY?'Seviyeyi yeniden başlat':gameMode==='classic'?(isRescueLevel?'Görevi yeniden başlat':'Seviyeyi yeniden başlat'):gameMode==='sprint'?'60 saniyeyi yeniden başlat':'Yeniden başla';if(REC.mr&&REC.mr.state==='recording')try{REC.mr.pause();}catch(e){}$('pauseBtn').textContent='▶';syncSettingsUI();$('sPause').classList.add('on');SND.setDrone(.05);SND.duck(.35,1e5);}}
 function resumeGame(){if(gState!=='paused')return;gState=pausedFrom;if(REC.mr&&REC.mr.state==='paused')try{REC.mr.resume();}catch(e){}$('pauseBtn').textContent='⏸';$('sPause').classList.remove('on');$('sSet').classList.remove('on');lastT=performance.now();resetInact();SND.setDrone(isRescueLevel?.2:.14);SND.duck(1,0);
   if(pendingWin){pendingWin=false;levelSuccess();}}
 document.addEventListener('visibilitychange',()=>{if(document.hidden){pauseGame();saveG();}});
@@ -2736,7 +2748,7 @@ $('pauseBtn').onclick=e=>{e.stopPropagation();if(gState==='paused')resumeGame();
 $('pResume').onclick=resumeGame;
 $('pLB').onclick=showLB;
 $('pRestart').onclick=()=>{if(MIS&&MIS.ph==='play'){resumeGame();missionFail();return;}if(REPLAY){$('sPause').classList.remove('on');SND.duck(1,0);$('pauseBtn').textContent='⏸';startReplayLevel();return;}$('sPause').classList.remove('on');SND.duck(1,0);if(gameMode==='classic'&&!isRescueLevel)resetRun(false);else if(gameMode==='sprint')startSprint(SPR_RUN.seed,SPR_RUN.opt);else if(gameMode==='classic')levelCheck(true);else resetRun(true,false);};
-$('pMenu').onclick=()=>{clearMission();if(REPLAY)endReplay(false);$('sPause').classList.remove('on');SND.duck(1,0);$('pauseBtn').textContent='⏸';hideModals();balls=[];ship=null;isRescueLevel=false;$('rhud').style.display='none';$('badge').className='hud-float';showMenu();};
+$('pMenu').onclick=()=>{if(MIS&&!REPLAY){LSTARS[level]=-1;savedLevel=level+1;savedScore=totalScore;saveG();}clearMission();if(REPLAY)endReplay(false);$('sPause').classList.remove('on');SND.duck(1,0);$('pauseBtn').textContent='⏸';hideModals();balls=[];ship=null;isRescueLevel=false;$('rhud').style.display='none';$('badge').className='hud-float';showMenu();};
 $('nextLvl').onclick=e=>{e.stopPropagation();if(REPLAY){endReplay(true);return;}level++;levelCheck();};
 $('lvlRetry').onclick=e=>{e.stopPropagation();if(!REPLAY)return;hideModals();startReplayLevel();};
 $('introOk').onclick=e=>{e.stopPropagation();hideModals();initLevel();};
@@ -2751,7 +2763,7 @@ $('shareBtn').onclick=async()=>{const txt=`${playerAvatar} ${playerName}: Blackh
   try{await navigator.clipboard.writeText(txt);$('shareBtn').textContent='KOPYALANDI';}catch(e){$('shareBtn').textContent='KOPYALANAMADI';}setTimeout(()=>$('shareBtn').textContent='SKORU KOPYALA',1800);};
 function endRescue(ok,st){
   isRescueLevel=false;ship=null;rPath=[];$('badge').className='hud-float';$('rhud').style.display='none';SND.setDrone(.14,650);
-  const rst=rSaved,rrec=recordStars(level,rst);if(REPLAY){replayWin(rst,rrec,true);return;}lvlButtons(false);
+  const rst=rSaved,rrec=recordStars(level,rst);if(REPLAY){replayWin(rst,rrec,true);return;}lvlButtons(false);lvlStarsShow(rst);$('lvlNext').innerHTML=nextTeaser(level+1);
   $('lvlHead').textContent=ok?'GÖREV BAŞARILI':'GÖREV BAŞARISIZ';$('lvlNum').textContent=level;
   $('lvlMsg').textContent=`${rSaved}/${RESCUE_SHIPS} mekik kurtarıldı${st?` · +${st} ⭐`:''}${rPerfects?` · ${rPerfects} mükemmel yanaşma`:''}`;
   showModal('mLvl');gState='menu';updateUI();
