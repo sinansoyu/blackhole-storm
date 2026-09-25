@@ -1,0 +1,74 @@
+# Builds the Google Play package (AAB) and a test APK from android/twa-manifest.json with Bubblewrap.
+# Needs: the web site live on GitHub Pages (icons are downloaded from it) and the secrets
+# ANDROID_KEYSTORE_B64 + ANDROID_KEYSTORE_PASSWORD (see GOOGLE_PLAY.md).
+name: Android paketi üret
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_code:
+        description: 'Sürüm kodu (Play her yüklemede daha büyük bir sayı ister: 1, 2, 3...)'
+        required: true
+        default: '1'
+      version_name:
+        description: 'Sürüm adı (kullanıcının gördüğü)'
+        required: true
+        default: '1.0.0'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Android SDK paketleri
+        run: |
+          sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.1.0"
+          # Bubblewrap looks for the SDK tools in <sdk>/bin (older layout)
+          ln -sfn "$ANDROID_HOME/cmdline-tools/latest/bin" "$ANDROID_HOME/bin"
+          ln -sfn "$ANDROID_HOME/cmdline-tools/latest/lib" "$ANDROID_HOME/lib"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Bubblewrap
+        run: |
+          npm install -g @bubblewrap/cli@1.25.0
+          mkdir -p ~/.bubblewrap
+          echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
+
+      - name: İmza anahtarı ve sürüm
+        working-directory: android
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+        run: |
+          if [ -z "$KEYSTORE_B64" ]; then echo "::error::ANDROID_KEYSTORE_B64 secret'ı yok. GOOGLE_PLAY.md adım 3'e bak."; exit 1; fi
+          echo "$KEYSTORE_B64" | base64 -d > android.keystore
+          jq --argjson c "${{ inputs.version_code }}" --arg n "${{ inputs.version_name }}" \
+            '.appVersionCode = $c | .appVersion = $n' twa-manifest.json > t.json && mv t.json twa-manifest.json
+
+      - name: Android projesini üret
+        working-directory: android
+        run: bubblewrap update --skipVersionUpgrade
+
+      - name: Derle ve imzala
+        working-directory: android
+        env:
+          BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: bubblewrap build --skipPwaValidation
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: blackhole-storm-${{ inputs.version_name }}-${{ inputs.version_code }}
+          path: |
+            android/app-release-bundle.aab
+            android/app-release-signed.apk
