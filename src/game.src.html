@@ -1588,7 +1588,7 @@ function renderMapCard(){
   P.forEach((p,i)=>{c.fillStyle=i<5?'#f2c46d':i===5?'#3fd8e8':'#2a2e44';c.beginPath();c.arc(p[0],p[1],i===5?9:7,0,TAU);c.fill();});
 }
 function openMap(){$('sMap').classList.add('on');$('mSheet').classList.remove('on');buildMap();requestAnimationFrame(()=>{const sc=$('mapScroll'),cp=mapPts[Math.max(1,savedLevel)-1];if(cp)sc.scrollTop=cp.y-sc.clientHeight*.55;});}
-function closeMap(){$('sMap').classList.remove('on');}
+function closeMap(){$('sMap').classList.remove('on');MSKY.job++;$('mapInner').querySelectorAll('.mtile').forEach(e=>e.remove());} // tile canvases hold tens of MB: free them for gameplay
 // ── Map sky: a procedural nebula drawn at the screen's own resolution in 460 px tiles. Noise and
 // stars use world coordinates, zones blend into each other across their boundaries, and the hash
 // keeps every value small so low-precision phone GPUs draw it without facets or seams.
@@ -1643,7 +1643,7 @@ function mapSkyGL(){
   return MSKY.g;
 }
 function mapSky(W0,H0,GAP,cur){
-  const inner=$('mapInner'),svg=$('mapSvg'),d=Math.min(devicePixelRatio||1,2.5),key=[W0,H0,d].join('|'),TILE=460;
+  const inner=$('mapInner'),svg=$('mapSvg'),d=Math.min(devicePixelRatio||1,1.5),key=[W0,H0,d].join('|'),TILE=460;
   if(MSKY.key===key&&inner.querySelector('.mtile,.zb'))return;
   inner.querySelectorAll('.mtile,.zb').forEach(e=>e.remove());MSKY.key=key;const job=++MSKY.job;
   const bands=[];for(let b=0;b*10<mapN;b++)bands.push({z:zoneOf(b*10+1),top:b*10+9>=mapN-1?0:mapPts[b*10+9].y-GAP/2,bot:b===0?H0:mapPts[b*10].y+GAP/2});
