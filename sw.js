@@ -1,7 +1,7 @@
 // Offline support: the game is one self-contained index.html, so caching it plus the
 // manifest and icons is enough. Navigations try the network first so updates arrive,
 // and fall back to the cached copy when offline.
-const CACHE = 'bhs-v2';
+const CACHE = 'bhs-v3';
 const CORE = ['./', 'index.html', 'privacy.html', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png'];
 
 self.addEventListener('install', e => {
