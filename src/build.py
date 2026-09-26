@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Builds the single-file game (index.html) from src/game.src.html.
 
-The readable game code lives in src/game.src.html. Large binary data (fonts,
+The readable game code lives in src/game.src.html and src/v2.js (the V2 drag engine). Large binary data (fonts,
 sprites, sounds, background images) is kept in src/blocks/ and injected at the
 placeholder comments; the translations come from i18n/*.json.
 
@@ -20,6 +20,9 @@ def read(p):
 
 def main():
     src = read(f'{SRC}/game.src.html')
+    # the V2 drag engine lives in its own file and is inlined into the game script
+    assert src.count('//@@V2_ENGINE@@') == 1
+    src = src.replace('//@@V2_ENGINE@@', read(f'{SRC}/v2.js').rstrip('\n'))
     for ph in ('FONT_DATA', 'SPRITE_DATA', 'SFX_DATA', 'ASSET_DATA', 'I18N_DATA'):
         assert src.count(f'<!--{ph}-->') == 1, ph
     langs = {}

@@ -7,6 +7,7 @@ Bu dosya, oyunu dışarıdan inceleyecek biri (insan ya da yapay zekâ) için ha
 | Dosya | Ne |
 |---|---|
 | `src/game.src.html` | **Asıl kaynak.** Tüm HTML, CSS ve JavaScript (~3.300 satır). Denetim buradan yapılmalı. |
+| `src/v2.js` | **V2 oynanış motoru**: sürükleyerek kontrol edilen kara delik, combo, Rage, güçler, seviye 1 öğretici senaryosu, dev gezegen boss'u. Derlemede `game.src.html` içine gömülür. |
 | `src/build.py` | `index.html`'i üretir: kaynaktaki yer tutuculara font, görsel, ses ve çevirileri gömer. |
 | `src/blocks/*.html` | Gömülü ikili veriler (base64 font, sprite, ses, arka plan). Kod değil, okumaya gerek yok. |
 | `i18n/*.json` | 9 dilin çevirileri (kaynak dil Türkçe, anahtarlar Türkçe metnin kendisi). |
@@ -34,7 +35,7 @@ Tek sayfa, çerçeve yok, sunucu yok. Oyun durumu `localStorage`'da tutulur.
 - **Eve Dönüş görevi** (~2150–2260) ve **Sapan kurtarma görevi** (~2451–2580): yörünge fiziği, öngörü çizgisi, asteroitler.
 - **Oyun akışı** (~2583–2860): `handleShot` (dokunma), `penalty`/`graceMiss`/`loseLife`, `levelSuccess`, `gameOver`.
 - **Günlük Kozmos sprint, paylaşım, video kaydı** (~2877–3030).
-- **Ana döngü** `loop(ts)` (~3033) ve başlangıç.
+- **Ana döngü** `loop(ts)` (~3033) ve başlangıç. `G2.on` iken döngü `v2Frame`'e (src/v2.js) devreder; seviye, Hayatta Kal ve Günlük Kozmos V2 motoruyla oynanır.
 
 ## Bilinen tasarım kararları (hata sanılmasın)
 
@@ -43,7 +44,8 @@ Tek sayfa, çerçeve yok, sunucu yok. Oyun durumu `localStorage`'da tutulur.
 - Cihaz saati geri alınınca tarihe bağlı ödüller kilitlenir (`clockOk`). Saati ileri almak yalnızca ödülü erken almayı sağlar, fazladan ödül vermez.
 - Service worker `sw.js` depoda ayrı dosya: `skipWaiting`, `clients.claim`, eski önbellek silme ve sayfa için önce ağdan yükleme zaten var.
 - `MON.mode`: web sürümünde mağaza ve reklamlar gizli (`off`); `test` kipinde sahte ödeme ve sahte reklam kullanılır; gerçek ödeme/reklam sağlayıcısı henüz takılmadı.
-- İlk 1–3. seviyeler kasıtlı olarak kolay (büyük halka, boş dokunuşa ek şans).
+- Seviye 1, 60 saniyelik senaryolu öğreticidir: oyun bitmez, reklam ve satın alma çıkmaz.
+- V2 değerleri (`V2K`, `OBJ2`) tasarım belgesinden alınmıştır; doğma aralığı (`v2Rules`) oyun testine göre ayarlandı.
 - Görseller NASA kamu malı fotoğraflarından; fontlar IBM Plex (SIL OFL).
 
 ## Denetimde bakılması istenenler
